@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OpenCV 전체 학습 교안</title>
+<style>
+:root{
+  --bg:#07111f;
+  --panel:#0f172a;
+  --panel2:#111827;
+  --card:#182235;
+  --text:#eef2ff;
+  --muted:#a7b2c7;
+  --line:rgba(148,163,184,.25);
+  --accent:#38bdf8;
+  --accent2:#a78bfa;
+  --good:#22c55e;
+  --warn:#f59e0b;
+  --bad:#ef4444;
+  --code:#020617;
+  --shadow:0 22px 60px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Pretendard","Noto Sans KR",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  background:
+    radial-gradient(circle at 10% 5%,rgba(56,189,248,.22),transparent 28%),
+    radial-gradient(circle at 92% 0%,rgba(167,139,250,.18),transparent 30%),
+    linear-gradient(180deg,#020617 0%,#07111f 42%,#0f172a 100%);
+  color:var(--text);
+  line-height:1.65;
+}
+header{
+  max-width:1240px;
+  margin:0 auto;
+  padding:42px 22px 22px;
+}
+.hero{
+  border:1px solid var(--line);
+  background:rgba(15,23,42,.78);
+  border-radius:30px;
+  box-shadow:var(--shadow);
+  padding:34px;
+  backdrop-filter:blur(12px);
+}
+h1{
+  margin:0 0 12px;
+  font-size:clamp(32px,5vw,58px);
+  line-height:1.05;
+  letter-spacing:-.05em;
+}
+.hero p{
+  max-width:980px;
+  color:var(--muted);
+  font-size:17px;
+  margin:0;
+}
+.badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  border:1px solid rgba(56,189,248,.36);
+  background:rgba(56,189,248,.11);
+  color:#bae6fd;
+  border-radius:999px;
+  padding:8px 12px;
+  font-weight:800;
+  font-size:13px;
+}
+.layout{
+  max-width:1240px;
+  margin:0 auto;
+  padding:0 22px 70px;
+  display:grid;
+  grid-template-columns:290px 1fr;
+  gap:22px;
+  align-items:start;
+}
+aside{
+  position:sticky;
+  top:14px;
+  background:rgba(15,23,42,.86);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(12px);
+}
+aside h2{font-size:17px;margin:4px 8px 12px}
+.navbtn{
+  width:100%;
+  display:block;
+  text-align:left;
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--muted);
+  padding:10px 12px;
+  border-radius:14px;
+  cursor:pointer;
+  font-weight:800;
+  transition:.15s;
+}
+.navbtn:hover,.navbtn.active{
+  background:rgba(56,189,248,.12);
+  border-color:rgba(56,189,248,.35);
+  color:#e0f2fe;
+}
+main{display:grid;gap:20px}
+section{
+  border:1px solid var(--line);
+  background:rgba(15,23,42,.78);
+  border-radius:26px;
+  padding:26px;
+  box-shadow:0 14px 42px rgba(0,0,0,.22);
+}
+section h2{
+  margin:0 0 12px;
+  font-size:30px;
+  letter-spacing:-.04em;
+  line-height:1.18;
+}
+.section-desc{
+  margin:0 0 18px;
+  color:var(--muted);
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{
+  background:rgba(255,255,255,.055);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:18px;
+}
+.card h3{margin:0 0 10px;font-size:19px}
+.card p,.card li{color:var(--muted);font-size:14.5px}
+.notice{
+  border-left:5px solid var(--accent);
+  background:rgba(56,189,248,.10);
+  color:#dbeafe;
+  border-radius:16px;
+  padding:14px 16px;
+  margin:14px 0;
+}
+.warn{border-left-color:var(--warn);background:rgba(245,158,11,.10);color:#fde68a}
+.good{border-left-color:var(--good);background:rgba(34,197,94,.10);color:#bbf7d0}
+.bad{border-left-color:var(--bad);background:rgba(239,68,68,.10);color:#fecaca}
+table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:16px;
+  font-size:14px;
+}
+th,td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:rgba(56,189,248,.10);color:#e0f2fe;text-align:left}
+td{color:var(--muted)}
+tr:last-child td{border-bottom:0}
+code,pre{font-family:"Cascadia Code","D2Coding","Consolas",monospace}
+code{
+  background:rgba(2,6,23,.55);
+  color:#bfdbfe;
+  padding:2px 6px;
+  border-radius:7px;
+}
+pre{
+  position:relative;
+  background:var(--code);
+  border:1px solid rgba(148,163,184,.22);
+  border-radius:18px;
+  padding:18px;
+  color:#dbeafe;
+  overflow:auto;
+  font-size:13px;
+  line-height:1.62;
+}
+.copy{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.07);
+  color:var(--text);
+  border-radius:12px;
+  padding:8px 11px;
+  cursor:pointer;
+  font-weight:800;
+}
+.copy:hover{border-color:rgba(56,189,248,.65)}
+.tabbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.tabbar button,.primary{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  border-radius:999px;
+  padding:10px 13px;
+  cursor:pointer;
+  font-weight:900;
+}
+.tabbar button.active,.primary:hover{
+  background:rgba(56,189,248,.15);
+  border-color:rgba(56,189,248,.55);
+}
+.term-search{
+  display:grid;
+  grid-template-columns:1fr 190px;
+  gap:10px;
+  margin-bottom:16px;
+}
+input,select,textarea{
+  width:100%;
+  border:1px solid var(--line);
+  background:rgba(2,6,23,.45);
+  color:var(--text);
+  border-radius:14px;
+  padding:12px 13px;
+  outline:none;
+}
+.term-list{display:grid;gap:10px}
+.term{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.045);
+  border-radius:18px;
+  padding:15px;
+}
+.term strong{font-size:17px;color:#e0f2fe}
+.term .meta{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.pill{
+  border:1px solid rgba(167,139,250,.35);
+  background:rgba(167,139,250,.11);
+  color:#ddd6fe;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:12px;
+  font-weight:900;
+}
+.flow{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:10px;
+}
+.step{
+  min-height:96px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  border-radius:18px;
+  padding:13px;
+  position:relative;
+}
+.step b{color:#e0f2fe}
+.step span{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+.quiz-box{display:grid;gap:12px}
+.quiz-option{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.055);
+  color:var(--text);
+  border-radius:15px;
+  padding:13px 14px;
+  cursor:pointer;
+  text-align:left;
+  font-weight:800;
+}
+.quiz-option:hover{border-color:rgba(56,189,248,.6)}
+.result{
+  display:none;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px;
+  background:rgba(255,255,255,.055);
+}
+.result.show{display:block}
+details{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.04);
+  border-radius:18px;
+  padding:13px 15px;
+  margin:10px 0;
+}
+summary{cursor:pointer;font-weight:900;color:#e0f2fe}
+.small{font-size:13px;color:var(--muted)}
+.practice{
+  display:grid;
+  gap:12px;
+}
+.check-item{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  background:rgba(255,255,255,.045);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+}
+.check-item input{width:auto;margin-top:6px}
+@media(max-width:980px){
+  .layout{grid-template-columns:1fr}
+  aside{position:static}
+  .grid2,.grid3,.flow{grid-template-columns:1fr}
+  .term-search{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <h1>OpenCV 전체 학습 교안</h1>
+    <p>
+      공유 Drive 폴더의 OpenCV 학습 노트북과 복습 문제를 기준으로, 처음 배우는 사람도 흐름을 잡을 수 있게
+      <b>개념 설명 → 코드 해석 → 실습 순서 → 복습 문제</b> 형태로 정리했습니다.
+    </p>
+    <div class="badges">
+      <span class="badge">이미지 읽기/쓰기</span>
+      <span class="badge">BGR/RGB/HSV</span>
+      <span class="badge">마스크와 색상 추출</span>
+      <span class="badge">히스토그램</span>
+      <span class="badge">필터링·모폴로지</span>
+      <span class="badge">회전·Affine·Perspective</span>
+      <span class="badge">복습문제 기반 실습</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <h2>목차</h2>
+    <button class="navbtn" onclick="go('source')">자료 확인 목록</button>
+    <button class="navbtn" onclick="go('roadmap')">학습 로드맵</button>
+    <button class="navbtn" onclick="go('basics')">1. 이미지 기초</button>
+    <button class="navbtn" onclick="go('color')">2. 색공간·HSV·마스크</button>
+    <button class="navbtn" onclick="go('histogram')">3. 히스토그램</button>
+    <button class="navbtn" onclick="go('filter')">4. 필터링·모폴로지</button>
+    <button class="navbtn" onclick="go('geometry')">5. 기하학적 변환</button>
+    <button class="navbtn" onclick="go('practice')">6. 복습문제 실습</button>
+    <button class="navbtn" onclick="go('dictionary')">OpenCV 사전</button>
+    <button class="navbtn" onclick="go('quiz')">랜덤 확인 문제</button>
+    <button class="navbtn" onclick="go('appendix')">코드 모음</button>
+  </aside>
+
+  <main>
+    <section id="source">
+      <h2>자료 확인 목록</h2>
+      <p class="section-desc">
+        공유 폴더 안의 하위 폴더와 노트북/이미지 자료를 기준으로 학습 교안을 구성했습니다.
+      </p>
+      <div class="grid3">
+        <div class="card">
+          <h3>OpenCV 반복학습</h3>
+          <p><b>1. OpenCV 코드실습 기초.ipynb</b></p>
+          <p>이미지 업로드, 이미지 표시, BGR→RGB 변환, HSV 마스크, 결과 시각화 흐름을 다룹니다.</p>
+        </div>
+        <div class="card">
+          <h3>코드</h3>
+          <p>영상 읽기/쓰기, 색상 히스토그램·마스크, OpenCV 필터링, 이미지 회전·확대·축소 노트북이 들어 있습니다.</p>
+          <p>함께 사용하는 이미지 예시: <code>wafer.jpg</code>, <code>salt.jpg</code>, <code>water_coins.jpg</code>, <code>Dog.jpg</code> 등.</p>
+        </div>
+        <div class="card">
+          <h3>복습문제</h3>
+          <p>7월 2일/7월 3일 복습 노트북과 정답 노트북이 들어 있습니다.</p>
+          <p>포인트 컬러 필터, 월리 옷 색 변경, 이진화, 적응형 이진화, 모폴로지 전처리를 연습합니다.</p>
+        </div>
+      </div>
+      <div class="notice">
+        이 HTML은 원본 노트북을 그대로 복사한 것이 아니라, 노트북에서 배운 내용을 학습용 교안으로 다시 정리한 자료입니다.
+      </div>
+    </section>
+
+    <section id="roadmap">
+      <h2>OpenCV 학습 로드맵</h2>
+      <p class="section-desc">아래 순서대로 이해하면 코드가 훨씬 덜 복잡하게 느껴집니다.</p>
+      <div class="flow">
+        <div class="step"><b>1</b><span>이미지는 결국 숫자 배열이라는 점 이해</span></div>
+        <div class="step"><b>2</b><span>BGR/RGB/GRAY/HSV 색공간 구분</span></div>
+        <div class="step"><b>3</b><span>마스크로 원하는 영역만 선택</span></div>
+        <div class="step"><b>4</b><span>히스토그램으로 밝기 분포 확인</span></div>
+        <div class="step"><b>5</b><span>필터와 모폴로지로 노이즈 제거</span></div>
+        <div class="step"><b>6</b><span>크롭, 리사이즈, 회전, 원근 보정</span></div>
+      </div>
+      <div class="notice good">
+        공부할 때는 <b>코드를 외우는 것</b>보다 “이 함수가 이미지를 어떤 식으로 바꾸는가?”를 먼저 이해하는 것이 중요합니다.
+      </div>
+    </section>
+
+    <section id="basics">
+      <h2>1. 이미지 기초: OpenCV에서 이미지는 숫자 배열이다</h2>
+      <p class="section-desc">
+        OpenCV는 이미지를 사람이 보는 그림이 아니라 <b>NumPy 배열</b>로 다룹니다.
+      </p>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>이미지의 shape</h3>
+          <p>컬러 이미지는 보통 <code>(세로, 가로, 채널)</code> 구조입니다.</p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+image = cv2.imread("sample.jpg")
+print(image.shape)  # 예: (480, 640, 3)
+print(image.ndim)   # 컬러 이미지는 3차원
+print(image.dtype)  # 보통 uint8, 값 범위 0~255</pre>
+        </div>
+        <div class="card">
+          <h3>BGR과 RGB</h3>
+          <p>
+            OpenCV는 이미지를 기본적으로 <b>BGR</b> 순서로 읽습니다.
+            그런데 matplotlib은 <b>RGB</b> 순서로 보여주기 때문에 변환하지 않으면 색이 이상하게 보일 수 있습니다.
+          </p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+bgr = cv2.imread("sample.jpg")
+rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+
+plt.imshow(rgb)
+plt.axis("off")
+plt.show()</pre>
+        </div>
+      </div>
+
+      <details open>
+        <summary>쉽게 이해하기</summary>
+        <p>
+          이미지는 작은 칸, 즉 픽셀들의 모음입니다. 흑백 이미지는 각 칸에 0~255 숫자 하나가 들어 있고,
+          컬러 이미지는 각 칸에 B, G, R 세 개 숫자가 들어 있습니다.
+          그래서 OpenCV에서 이미지를 바꾼다는 것은 결국 <b>배열 안의 숫자를 바꾸는 것</b>입니다.
+        </p>
+      </details>
+
+      <div class="notice warn">
+        자주 하는 실수: <code>cv2.imread()</code>로 읽은 이미지를 바로 <code>plt.imshow()</code>하면 색이 뒤집혀 보일 수 있습니다.
+        matplotlib으로 볼 때는 거의 항상 <code>cv2.COLOR_BGR2RGB</code> 변환을 생각하세요.
+      </div>
+    </section>
+
+    <section id="color">
+      <h2>2. 색공간·HSV·마스크</h2>
+      <p class="section-desc">
+        색상 추출 실습의 핵심은 <b>HSV로 변환 → lower/upper 범위 설정 → mask 생성 → bitwise_and 적용</b>입니다.
+      </p>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>HSV는 왜 쓸까?</h3>
+          <p>
+            RGB/BGR은 빨강·초록·파랑 값이 조명에 따라 같이 흔들립니다.
+            HSV는 색상(H), 채도(S), 밝기(V)를 분리해서 표현하므로 “빨간색만 찾기” 같은 작업에 더 편합니다.
+          </p>
+          <table>
+            <tr><th>값</th><th>의미</th><th>OpenCV 범위</th></tr>
+            <tr><td>H</td><td>Hue, 색상</td><td>0~179</td></tr>
+            <tr><td>S</td><td>Saturation, 채도</td><td>0~255</td></tr>
+            <tr><td>V</td><td>Value, 밝기</td><td>0~255</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>mask와 result의 차이</h3>
+          <p><code>mask</code>는 흑백 지도입니다. 범위 안이면 255, 범위 밖이면 0입니다.</p>
+          <p><code>result</code>는 그 마스크를 원본 이미지에 적용해서 원하는 색만 남긴 이미지입니다.</p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+lower_red = np.array([0, 100, 100])
+upper_red = np.array([20, 255, 255])
+
+mask = cv2.inRange(hsv, lower_red, upper_red)
+result = cv2.bitwise_and(image, image, mask=mask)</pre>
+        </div>
+      </div>
+
+      <div class="notice">
+        <b>mask 비유</b>: 마스크는 “구멍 뚫린 종이”입니다. 흰색 부분은 구멍이 뚫려 원본이 보이고, 검은색 부분은 가려져 검정으로 사라집니다.
+      </div>
+
+      <h3>빨간색은 왜 두 구간으로 잡을까?</h3>
+      <p class="section-desc">
+        OpenCV의 Hue는 0~179 원형 구조입니다. 빨간색은 0 근처에도 있고 179 근처에도 있기 때문에 두 마스크를 합치는 경우가 많습니다.
+      </p>
+      <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+lower_red1 = np.array([0, 80, 50])
+upper_red1 = np.array([10, 255, 255])
+
+lower_red2 = np.array([170, 80, 50])
+upper_red2 = np.array([180, 255, 255])
+
+mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+
+red_mask = cv2.bitwise_or(mask1, mask2)</pre>
+    </section>
+
+    <section id="histogram">
+      <h2>3. 히스토그램: 이미지의 밝기 분포 보기</h2>
+      <p class="section-desc">
+        히스토그램은 “0~255 밝기 값이 각각 몇 개나 있는지”를 세는 그래프입니다.
+        어두운 이미지인지, 밝은 이미지인지, 대비가 약한지 확인할 때 사용합니다.
+      </p>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>히스토그램 계산</h3>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+hist = cv2.calcHist(
+    [gray],      # 이미지
+    [0],         # 채널 번호
+    None,        # 마스크 없음
+    [256],       # 0~255 총 256칸
+    [0, 256]     # 값 범위
+)
+
+plt.plot(hist)
+plt.show()</pre>
+        </div>
+        <div class="card">
+          <h3>히스토그램 평활화</h3>
+          <p>
+            평활화는 한쪽에 몰린 픽셀 값을 넓게 퍼뜨려 대비를 높이는 방법입니다.
+            어둡거나 흐릿한 이미지에서 디테일이 더 잘 보이게 만들 수 있습니다.
+          </p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+equalized = cv2.equalizeHist(gray)
+
+plt.imshow(equalized, cmap="gray")
+plt.axis("off")
+plt.show()</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="filter">
+      <h2>4. 필터링·이진화·모폴로지</h2>
+      <p class="section-desc">
+        필터링은 주변 픽셀을 이용해 이미지를 부드럽게 하거나 노이즈를 줄이는 작업입니다.
+        모폴로지는 이진 이미지에서 흰색 영역을 깎거나 부풀려 형태를 정리하는 작업입니다.
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>기법</th><th>함수</th><th>언제 쓰나?</th><th>쉽게 말하면</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>평균 블러</td><td><code>cv2.blur</code></td><td>전체적으로 부드럽게</td><td>주변 값을 단순 평균</td></tr>
+          <tr><td>가우시안 블러</td><td><code>cv2.GaussianBlur</code></td><td>자연스럽게 노이즈 제거</td><td>중앙 픽셀에 더 큰 가중치</td></tr>
+          <tr><td>중앙값 블러</td><td><code>cv2.medianBlur</code></td><td>소금후추 노이즈 제거</td><td>주변 값 중 중앙값 선택</td></tr>
+          <tr><td>침식</td><td><code>cv2.erode</code></td><td>작은 흰색 노이즈 제거</td><td>흰색 영역을 깎음</td></tr>
+          <tr><td>팽창</td><td><code>cv2.dilate</code></td><td>끊어진 흰색 영역 연결</td><td>흰색 영역을 부풀림</td></tr>
+          <tr><td>열기</td><td><code>MORPH_OPEN</code></td><td>작은 노이즈 제거</td><td>침식 후 팽창</td></tr>
+          <tr><td>닫기</td><td><code>MORPH_CLOSE</code></td><td>작은 구멍 메우기</td><td>팽창 후 침식</td></tr>
+        </tbody>
+      </table>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="card">
+          <h3>블러 예시</h3>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+image = cv2.imread(image_path)
+image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+blur = cv2.blur(image, (7, 7))
+gaussian = cv2.GaussianBlur(image, (7, 7), 0)
+median = cv2.medianBlur(image, 7)</pre>
+        </div>
+        <div class="card">
+          <h3>이진화 + 모폴로지 예시</h3>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+_, binary = cv2.threshold(
+    gray, 127, 255, cv2.THRESH_BINARY
+)
+
+kernel = np.ones((3, 3), np.uint8)
+
+opening = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
+closing = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)</pre>
+        </div>
+      </div>
+
+      <div class="notice warn">
+        모폴로지는 보통 <b>흑백 이진 이미지</b>에서 효과가 잘 보입니다.
+        컬러 이미지에 바로 적용하기보다 <code>GRAY → threshold → morphology</code> 순서로 생각하세요.
+      </div>
+    </section>
+
+    <section id="geometry">
+      <h2>5. 크롭·리사이즈·회전·Affine·Perspective</h2>
+      <p class="section-desc">
+        기하학적 변환은 이미지 픽셀의 위치를 바꾸는 작업입니다.
+        즉, “색을 바꾸는 것”이 아니라 “픽셀이 어디로 이동할지”를 정합니다.
+      </p>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>크롭과 리사이즈</h3>
+          <p><code>image[세로범위, 가로범위]</code>로 원하는 부분만 잘라낼 수 있습니다.</p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+# crop: 세로 250~300, 가로 400~600 영역
+crop = image[250:300, 400:600]
+
+# resize: dsize는 (가로, 세로) 순서
+small = cv2.resize(image, dsize=(600, 500))</pre>
+        </div>
+
+        <div class="card">
+          <h3>회전</h3>
+          <p>회전은 중심점, 각도, 스케일을 정한 뒤 <code>warpAffine</code>으로 적용합니다.</p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+h, w, _ = image.shape
+center = (w / 2, h / 2)
+
+matrix = cv2.getRotationMatrix2D(
+    center,  # 회전 중심
+    250,     # 각도
+    1        # 스케일
+)
+
+rotated = cv2.warpAffine(image, matrix, (w, h))</pre>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="card">
+          <h3>Affine 변환</h3>
+          <p>
+            Affine은 이동, 회전, 크기 조절, 기울이기를 포함합니다.
+            2x3 행렬에서 <code>t1</code>, <code>t2</code>는 x/y 이동입니다.
+          </p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+affine_matrix = np.array([
+    [1,  0.3, 50],
+    [-0.3, 1, 50]
+]).astype(np.float32)
+
+result = cv2.warpAffine(image, affine_matrix, (w, h))</pre>
+        </div>
+        <div class="card">
+          <h3>Perspective 변환</h3>
+          <p>
+            Perspective는 사다리꼴처럼 찍힌 영역을 정면 사각형처럼 보정할 때 사용합니다.
+            문서 스캔, 카드 인식, 표지판 보정에 자주 쓰입니다.
+          </p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+src_pts = np.float32([
+    [200, 100],
+    [400, 100],
+    [110, 300],
+    [580, 300]
+])
+
+dst_pts = np.float32([
+    [0, 0],
+    [299, 0],
+    [0, 399],
+    [299, 399]
+])
+
+M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+result = cv2.warpPerspective(image, M, (300, 400))</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="practice">
+      <h2>6. 복습문제 기반 실습</h2>
+      <p class="section-desc">
+        Drive의 복습 문제 노트북에서 다루는 연습 흐름을 과제형으로 정리했습니다.
+      </p>
+
+      <div class="practice">
+        <div class="card">
+          <h3>실습 1. 포인트 컬러 필터</h3>
+          <p>목표: 빨간색은 컬러로 남기고, 나머지는 흑백으로 바꾸기</p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+def color_filter(filename):
+    bgr = cv2.imread(filename)
+    hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+
+    lower1 = np.array([0, 80, 50])
+    upper1 = np.array([10, 255, 255])
+    lower2 = np.array([170, 80, 50])
+    upper2 = np.array([180, 255, 255])
+
+    mask1 = cv2.inRange(hsv, lower1, upper1)
+    mask2 = cv2.inRange(hsv, lower2, upper2)
+    red_mask = cv2.bitwise_or(mask1, mask2)
+
+    gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+    gray_bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+
+    result = np.where(red_mask[:, :, None] == 255, bgr, gray_bgr)
+    return result</pre>
+        </div>
+
+        <div class="card">
+          <h3>실습 2. 특정 색상만 다른 색으로 바꾸기</h3>
+          <p>목표: 마스크로 색을 바꿀 픽셀 위치를 찾고, HSV의 H 값만 변경하기</p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+def change_color_pixel(filename, ranges, new_hue):
+    image = cv2.imread(filename)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    mask = np.zeros(hsv.shape[:2], dtype=np.uint8)
+
+    for lower, upper in ranges:
+        temp = cv2.inRange(hsv, lower, upper)
+        mask = cv2.bitwise_or(mask, temp)
+
+    y, x = np.where(mask == 255)
+
+    for yi, xi in zip(y, x):
+        hsv[yi, xi, 0] = new_hue
+
+    result = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    return result</pre>
+        </div>
+
+        <div class="card">
+          <h3>실습 3. 희미한 부분 선명하게 만들기</h3>
+          <p>목표: 이미지 일부를 crop한 뒤 threshold/adaptiveThreshold로 선명도를 비교하기</p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+brain = image[:, :270]
+gray = cv2.cvtColor(brain, cv2.COLOR_BGR2GRAY)
+
+# 여러 임계값을 비교
+for value in [20, 40, 60, 80, 100, 120, 140, 160, 180]:
+    _, binary = cv2.threshold(gray, value, 255, cv2.THRESH_BINARY)
+
+# 주변 픽셀까지 고려하는 적응형 이진화
+adaptive = cv2.adaptiveThreshold(
+    gray,
+    255,
+    cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    cv2.THRESH_BINARY,
+    77,
+    1
+)</pre>
+        </div>
+
+        <div class="card">
+          <h3>실습 4. 노이즈가 심한 이미지 전처리</h3>
+          <p>목표: threshold 후 모폴로지 연산으로 동그란 덩어리들을 더 잘 연결하기</p>
+          <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+_, binary = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+
+kernel = cv2.getStructuringElement(
+    cv2.MORPH_ELLIPSE,
+    (3, 3)
+)
+
+result = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)</pre>
+        </div>
+      </div>
+
+      <div class="notice good">
+        실습할 때는 한 번에 정답 코드를 만들려고 하지 말고,
+        <b>원본 → gray → mask/binary → 전처리 결과</b>를 한 줄씩 출력하면서 확인하세요.
+      </div>
+    </section>
+
+    <section id="dictionary">
+      <h2>OpenCV 사전</h2>
+      <p class="section-desc">모르는 단어를 검색하거나, 단원별로 필터링해서 볼 수 있습니다.</p>
+      <div class="term-search">
+        <input id="termInput" placeholder="예: mask, HSV, threshold, affine, kernel" oninput="renderTerms()" />
+        <select id="termCategory" onchange="renderTerms()">
+          <option value="전체">전체</option>
+          <option value="기초">기초</option>
+          <option value="색공간">색공간</option>
+          <option value="마스크">마스크</option>
+          <option value="히스토그램">히스토그램</option>
+          <option value="필터">필터</option>
+          <option value="기하학">기하학</option>
+          <option value="복습">복습</option>
+        </select>
+      </div>
+      <div id="termList" class="term-list"></div>
+    </section>
+
+    <section id="quiz">
+      <h2>랜덤 확인 문제</h2>
+      <p class="section-desc">개념을 이해했는지 바로 점검해보세요.</p>
+      <div class="quiz-box">
+        <div class="card">
+          <h3 id="qText">문제</h3>
+          <div id="qOptions"></div>
+          <div id="qResult" class="result"></div>
+          <button class="primary" onclick="nextQuestion()">다음 문제</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="appendix">
+      <h2>코드 모음: 실습 시작 템플릿</h2>
+      <p class="section-desc">Colab에서 실습할 때 기본으로 깔아두면 좋은 코드입니다.</p>
+      <pre><button class="copy" onclick="copyPrev(this)">복사</button>
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from google.colab.patches import cv2_imshow
+from google.colab import files
+
+def get_image():
+    upload = files.upload()
+    filename = list(upload.keys())[0]
+    return filename
+
+def show_rgb(image_bgr, title="image"):
+    rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+    plt.figure(figsize=(6, 4))
+    plt.title(title)
+    plt.imshow(rgb)
+    plt.axis("off")
+    plt.show()
+
+image_path = get_image()
+image = cv2.imread(image_path)
+
+print("shape:", image.shape)
+print("dtype:", image.dtype)
+
+show_rgb(image, "Original")</pre>
+
+      <div class="notice">
+        <b>추천 학습 순서</b><br>
+        1일차: 이미지 읽기/쓰기, BGR/RGB, shape 이해<br>
+        2일차: HSV와 mask/result 이해<br>
+        3일차: histogram, equalizeHist 이해<br>
+        4일차: blur, threshold, morphology 실습<br>
+        5일차: crop, resize, rotation, affine, perspective 실습<br>
+        6일차: 복습 문제를 함수로 다시 풀기
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+function go(id){
+  document.getElementById(id).scrollIntoView({behavior:"smooth",block:"start"});
+}
+function copyPrev(btn){
+  const pre = btn.parentElement;
+  const clone = pre.cloneNode(true);
+  const b = clone.querySelector("button");
+  if(b) b.remove();
+  navigator.clipboard.writeText(clone.innerText.trim()).then(()=>{
+    const old = btn.innerText;
+    btn.innerText = "복사됨";
+    setTimeout(()=>btn.innerText=old, 900);
+  });
+}
+
+const terms = [
+  {t:"cv2.imread", c:"기초", d:"이미지 파일을 OpenCV 배열로 읽어오는 함수입니다. 기본 결과는 BGR 순서입니다.", f:"cv2.imread('sample.jpg')"},
+  {t:"cv2.imwrite", c:"기초", d:"처리한 이미지를 파일로 저장하는 함수입니다.", f:"cv2.imwrite('result.jpg', image)"},
+  {t:"shape", c:"기초", d:"이미지 배열의 크기입니다. 컬러 이미지는 보통 (세로, 가로, 채널)입니다.", f:"image.shape"},
+  {t:"dtype", c:"기초", d:"픽셀 값의 자료형입니다. OpenCV 이미지는 보통 uint8이며 범위는 0~255입니다.", f:"image.dtype"},
+  {t:"BGR", c:"색공간", d:"OpenCV가 기본으로 사용하는 색상 채널 순서입니다. Blue, Green, Red 순서입니다.", f:"cv2.imread"},
+  {t:"RGB", c:"색공간", d:"matplotlib이 일반적으로 기대하는 색상 순서입니다. OpenCV 이미지를 matplotlib으로 볼 때 변환이 필요합니다.", f:"cv2.cvtColor(image, cv2.COLOR_BGR2RGB)"},
+  {t:"GRAY", c:"색공간", d:"흑백 이미지입니다. 채널이 하나이며 밝기 값만 가집니다.", f:"cv2.COLOR_BGR2GRAY"},
+  {t:"HSV", c:"색공간", d:"Hue, Saturation, Value입니다. 색상 추출에 편한 색공간입니다.", f:"cv2.COLOR_BGR2HSV"},
+  {t:"Hue", c:"색공간", d:"색상 자체입니다. OpenCV에서는 0~179 범위를 사용합니다.", f:"np.array([H, S, V])"},
+  {t:"Saturation", c:"색공간", d:"채도입니다. 낮으면 회색에 가깝고 높으면 선명합니다.", f:"0~255"},
+  {t:"Value", c:"색공간", d:"밝기입니다. 낮으면 어둡고 높으면 밝습니다.", f:"0~255"},
+  {t:"cv2.split", c:"색공간", d:"이미지를 채널별로 나누는 함수입니다. B, G, R 채널을 따로 볼 수 있습니다.", f:"b, g, r = cv2.split(src)"},
+  {t:"mask", c:"마스크", d:"원하는 영역은 255, 나머지는 0으로 표현한 흑백 선택 지도입니다.", f:"cv2.inRange"},
+  {t:"cv2.inRange", c:"마스크", d:"lower~upper 범위 안에 들어오는 픽셀만 255로 만드는 함수입니다.", f:"mask = cv2.inRange(hsv, lower, upper)"},
+  {t:"bitwise_and", c:"마스크", d:"마스크가 흰색인 위치만 원본 이미지에서 남기는 연산입니다.", f:"cv2.bitwise_and(image, image, mask=mask)"},
+  {t:"bitwise_or", c:"마스크", d:"두 마스크를 합치거나 두 이미지의 합집합 영역을 만들 때 사용합니다.", f:"cv2.bitwise_or(mask1, mask2)"},
+  {t:"np.where", c:"마스크", d:"조건에 따라 픽셀을 선택적으로 바꿀 때 사용합니다.", f:"np.where(mask[:, :, None] == 255, color, gray)"},
+  {t:"histogram", c:"히스토그램", d:"픽셀 밝기 값이 얼마나 분포하는지 보여주는 그래프입니다.", f:"cv2.calcHist"},
+  {t:"cv2.calcHist", c:"히스토그램", d:"이미지의 픽셀 분포를 계산합니다.", f:"cv2.calcHist([gray], [0], None, [256], [0,256])"},
+  {t:"equalizeHist", c:"히스토그램", d:"픽셀 분포를 넓게 펴서 대비를 향상시키는 함수입니다.", f:"cv2.equalizeHist(gray)"},
+  {t:"kernel", c:"필터", d:"이미지 위를 움직이며 주변 픽셀을 계산하는 작은 행렬입니다.", f:"np.ones((3,3), np.uint8)"},
+  {t:"blur", c:"필터", d:"주변 픽셀 평균으로 이미지를 부드럽게 만듭니다.", f:"cv2.blur(image, (7,7))"},
+  {t:"GaussianBlur", c:"필터", d:"중앙 픽셀에 더 큰 가중치를 주는 자연스러운 블러입니다.", f:"cv2.GaussianBlur(image, (7,7), 0)"},
+  {t:"medianBlur", c:"필터", d:"주변 픽셀 중 중앙값을 선택합니다. 소금후추 노이즈 제거에 좋습니다.", f:"cv2.medianBlur(image, 7)"},
+  {t:"threshold", c:"필터", d:"기준값보다 크면 255, 작으면 0처럼 이진 이미지로 바꾸는 기법입니다.", f:"cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)"},
+  {t:"adaptiveThreshold", c:"필터", d:"전체 기준 하나가 아니라 주변 픽셀을 참고해서 지역별로 이진화합니다.", f:"cv2.adaptiveThreshold"},
+  {t:"erode", c:"필터", d:"흰색 영역을 깎습니다. 작은 흰색 노이즈 제거에 사용합니다.", f:"cv2.erode"},
+  {t:"dilate", c:"필터", d:"흰색 영역을 부풀립니다. 끊어진 영역을 연결하는 데 사용합니다.", f:"cv2.dilate"},
+  {t:"opening", c:"필터", d:"침식 후 팽창입니다. 작은 노이즈 제거에 좋습니다.", f:"cv2.MORPH_OPEN"},
+  {t:"closing", c:"필터", d:"팽창 후 침식입니다. 작은 구멍을 메우는 데 좋습니다.", f:"cv2.MORPH_CLOSE"},
+  {t:"crop", c:"기하학", d:"배열 슬라이싱으로 이미지 일부만 잘라내는 작업입니다.", f:"image[y1:y2, x1:x2]"},
+  {t:"resize", c:"기하학", d:"이미지 크기를 바꾸는 함수입니다. dsize는 (가로, 세로) 순서입니다.", f:"cv2.resize(image, (w, h))"},
+  {t:"warpAffine", c:"기하학", d:"2x3 행렬을 이용해 이동, 회전, 기울이기 등을 적용합니다.", f:"cv2.warpAffine"},
+  {t:"getRotationMatrix2D", c:"기하학", d:"회전 중심, 각도, 스케일로 회전 행렬을 만듭니다.", f:"cv2.getRotationMatrix2D(center, angle, scale)"},
+  {t:"Perspective", c:"기하학", d:"원근 효과를 보정하거나 사다리꼴 영역을 사각형으로 펴는 변환입니다.", f:"cv2.getPerspectiveTransform"},
+  {t:"warpPerspective", c:"기하학", d:"Perspective 변환 행렬을 실제 이미지에 적용합니다.", f:"cv2.warpPerspective"},
+  {t:"포인트 컬러 필터", c:"복습", d:"특정 색상만 컬러로 남기고 나머지는 흑백으로 처리하는 실습입니다.", f:"mask + np.where"},
+  {t:"색상 변경", c:"복습", d:"특정 색상의 픽셀 위치를 찾고 HSV의 Hue 값을 바꿔 다른 색으로 변경합니다.", f:"hsv[y, x, 0] = new_hue"}
+];
+
+function renderTerms(){
+  const q = document.getElementById("termInput").value.toLowerCase();
+  const cat = document.getElementById("termCategory").value;
+  const filtered = terms.filter(x => {
+    const hit = (x.t + " " + x.d + " " + x.f).toLowerCase().includes(q);
+    const catHit = cat === "전체" || x.c === cat;
+    return hit && catHit;
+  });
+  document.getElementById("termList").innerHTML = filtered.map(x => `
+    <div class="term">
+      <strong>${x.t}</strong>
+      <div class="meta"><span class="pill">${x.c}</span><span class="pill">${x.f}</span></div>
+      <div>${x.d}</div>
+    </div>
+  `).join("") || `<div class="term">검색 결과가 없습니다.</div>`;
+}
+
+const questions = [
+  {q:"OpenCV가 이미지를 읽을 때 기본 색상 순서는?", o:["RGB","BGR","HSV","GRAY"], a:1, e:"cv2.imread()는 기본적으로 BGR 순서로 이미지를 읽습니다."},
+  {q:"matplotlib으로 OpenCV 이미지를 제대로 보려면 자주 필요한 변환은?", o:["BGR→RGB","RGB→HSV","GRAY→BGR","HSV→GRAY"], a:0, e:"matplotlib은 RGB 기준이므로 BGR 이미지를 RGB로 바꿔야 색이 자연스럽습니다."},
+  {q:"HSV에서 H는 무엇을 의미할까?", o:["밝기","채도","색상","크기"], a:2, e:"H는 Hue, 즉 색상입니다."},
+  {q:"cv2.inRange의 결과는 무엇인가?", o:["컬러 이미지","흑백 마스크","회전 행렬","히스토그램"], a:1, e:"범위 안은 255, 범위 밖은 0인 흑백 마스크가 만들어집니다."},
+  {q:"mask가 255인 곳만 원본에서 남기는 함수는?", o:["cv2.calcHist","cv2.resize","cv2.bitwise_and","cv2.imwrite"], a:2, e:"cv2.bitwise_and(image, image, mask=mask)를 사용합니다."},
+  {q:"픽셀 밝기 분포를 확인할 때 사용하는 개념은?", o:["히스토그램","Affine","BGR","crop"], a:0, e:"히스토그램은 밝기값 0~255의 분포를 보여줍니다."},
+  {q:"소금후추 노이즈 제거에 특히 자주 쓰는 블러는?", o:["medianBlur","resize","warpAffine","split"], a:0, e:"medianBlur는 주변값의 중앙값을 사용해 점 잡음 제거에 유리합니다."},
+  {q:"흰색 영역을 깎는 모폴로지 연산은?", o:["dilate","erode","closing","resize"], a:1, e:"erode는 흰색 영역을 깎고, dilate는 부풀립니다."},
+  {q:"Opening은 어떤 순서인가?", o:["팽창 후 침식","침식 후 팽창","회전 후 이동","RGB 후 HSV"], a:1, e:"Opening은 침식 후 팽창이며 작은 노이즈 제거에 좋습니다."},
+  {q:"이미지 일부를 자를 때 사용하는 기본 방식은?", o:["image[y1:y2, x1:x2]","cv2.split","cv2.imwrite","np.ones"], a:0, e:"NumPy 배열 슬라이싱으로 crop할 수 있습니다."},
+  {q:"cv2.resize에서 dsize 순서는?", o:["세로, 가로","가로, 세로","채널, 세로","세로, 채널"], a:1, e:"OpenCV의 dsize는 (width, height), 즉 (가로, 세로)입니다."},
+  {q:"회전 행렬을 만드는 함수는?", o:["cv2.getRotationMatrix2D","cv2.calcHist","cv2.inRange","cv2.split"], a:0, e:"중심점, 각도, 스케일로 회전 행렬을 만듭니다."},
+  {q:"사다리꼴 영역을 정면 사각형처럼 보정할 때 쓰는 변환은?", o:["Perspective","threshold","medianBlur","bitwise_not"], a:0, e:"Perspective 변환은 원근 보정에 사용합니다."}
+];
+let current = null;
+function nextQuestion(){
+  current = questions[Math.floor(Math.random()*questions.length)];
+  document.getElementById("qText").textContent = current.q;
+  document.getElementById("qOptions").innerHTML = current.o.map((x,i)=>`<button class="quiz-option" onclick="checkQ(${i})">${x}</button>`).join("");
+  const r = document.getElementById("qResult");
+  r.className = "result";
+  r.innerHTML = "";
+}
+function checkQ(i){
+  const r = document.getElementById("qResult");
+  const answer = current.o[current.a];
+  const wrongs = current.o.filter((_,idx)=>idx!==current.a).map(x=>`<li><b>${x}</b> — ${answer}과 처리 목적 또는 반환값이 다른 개념입니다.</li>`).join("");
+  r.className = "result show " + (i === current.a ? "good" : "bad");
+  r.innerHTML = `<b>${i === current.a ? "정답입니다!" : "오답입니다."}</b><br><b>정답:</b> ${answer}<hr><p><b>① 정답 이유</b><br>${current.e}</p><details open><summary><b>② 오답 분석</b></summary><ul>${wrongs}</ul></details><details open><summary><b>③ 배경지식</b></summary><p>OpenCV에서는 색공간, 배열 shape, 채널 수와 함수의 반환값을 함께 확인해야 합니다. 처리 전후 이미지를 출력하고 dtype과 값 범위를 비교해 보세요.</p></details><p><b>④ 기억 포인트</b><br>보기 없이 ${answer}의 역할을 한 문장으로 설명해 보세요.</p>`;
+}
+renderTerms();
+nextQuestion();
+</script>
+</body>
+</html>

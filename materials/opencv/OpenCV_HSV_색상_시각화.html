@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenCV HSV 색상 시각화 도구</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel2: #1e293b;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --line: rgba(148, 163, 184, 0.25);
+      --accent: #38bdf8;
+      --good: #22c55e;
+      --bad: #ef4444;
+      --warn: #f59e0b;
+      --card: rgba(255,255,255,.06);
+      --shadow: 0 18px 45px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(56,189,248,.18), transparent 32%),
+        radial-gradient(circle at 85% 0%, rgba(168,85,247,.16), transparent 28%),
+        linear-gradient(180deg, #020617 0%, #0f172a 45%, #111827 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 44px 20px 26px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .hero-card, .mini-card, section {
+      background: rgba(15, 23, 42, .78);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+    }
+    .hero-card { padding: 30px; }
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(30px, 4vw, 50px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.75;
+    }
+    .tags {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      border: 1px solid rgba(56,189,248,.35);
+      background: rgba(56,189,248,.12);
+      color: #bae6fd;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .mini-card {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .mini-card h2 {
+      font-size: 20px;
+      margin: 0 0 10px;
+    }
+    .quick-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .quick {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--line);
+    }
+    .quick strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .quick span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    nav {
+      max-width: 1180px;
+      margin: 0 auto 20px;
+      padding: 0 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+    }
+    nav button, .btn {
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, .82);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 11px 15px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: .18s;
+    }
+    nav button:hover, .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(56,189,248,.75);
+      box-shadow: 0 10px 22px rgba(56,189,248,.12);
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+      display: grid;
+      gap: 20px;
+    }
+    section {
+      padding: 24px;
+    }
+    section h2 {
+      margin: 0 0 16px;
+      font-size: 26px;
+      letter-spacing: -0.03em;
+    }
+    .section-desc {
+      color: var(--muted);
+      line-height: 1.7;
+      margin-top: -6px;
+      margin-bottom: 18px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+    }
+    .box h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .box p, .box li {
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+    .control-card {
+      background: rgba(255,255,255,.055);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+    }
+    .control-card h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+    .slider-row {
+      display: grid;
+      grid-template-columns: 34px 1fr 70px;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0;
+    }
+    .slider-row label {
+      font-weight: 900;
+      color: #cbd5e1;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+    input[type="number"], input[type="text"], textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(2,6,23,.45);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline: none;
+      font-size: 14px;
+    }
+    input[type="number"] { text-align: center; }
+    textarea {
+      min-height: 95px;
+      resize: vertical;
+      line-height: 1.6;
+      font-family: "Cascadia Code", "D2Coding", monospace;
+    }
+    .swatch-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .swatch {
+      min-height: 150px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.28);
+      display: flex;
+      align-items: end;
+      padding: 14px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 -70px 80px rgba(0,0,0,.32);
+    }
+    .swatch::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(45deg, rgba(255,255,255,.07) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255,255,255,.07) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255,255,255,.07) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.07) 75%);
+      background-size: 18px 18px;
+      background-position: 0 0, 0 9px, 9px -9px, -9px 0px;
+      opacity: .22;
+      pointer-events: none;
+    }
+    .swatch-info {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      background: rgba(0,0,0,.36);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 14px;
+      padding: 10px;
+      backdrop-filter: blur(5px);
+    }
+    .swatch-info strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .swatch-info code {
+      color: #e0f2fe;
+      font-size: 12px;
+      word-break: break-all;
+    }
+    .range-bar {
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      margin-top: 12px;
+      background: linear-gradient(90deg,
+        hsl(0,100%,50%),
+        hsl(30,100%,50%),
+        hsl(60,100%,50%),
+        hsl(120,100%,50%),
+        hsl(180,100%,50%),
+        hsl(240,100%,50%),
+        hsl(300,100%,50%),
+        hsl(360,100%,50%)
+      );
+      position: relative;
+    }
+    .range-highlight {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: rgba(255,255,255,.45);
+      border-left: 3px solid #fff;
+      border-right: 3px solid #fff;
+      box-shadow: 0 0 22px rgba(255,255,255,.4);
+    }
+    .range-labels {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+      text-align: center;
+    }
+    .array-tools {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--line);
+      color: #dbeafe;
+      font-size: 12px;
+      font-weight: 800;
+      margin: 3px;
+    }
+    code, pre {
+      font-family: "Cascadia Code", "D2Coding", monospace;
+    }
+    pre {
+      background: rgba(2,6,23,.7);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      overflow-x: auto;
+      color: #dbeafe;
+      line-height: 1.6;
+      font-size: 13px;
+    }
+    .examples {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px;
+    }
+    .example-card {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      border-radius: 18px;
+      padding: 14px;
+      cursor: pointer;
+      transition: .16s;
+    }
+    .example-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(56,189,248,.65);
+    }
+    .example-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 9px;
+    }
+    .dot {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.5);
+      box-shadow: inset 0 -10px 20px rgba(0,0,0,.25);
+      flex: 0 0 auto;
+    }
+    .example-card strong {
+      font-size: 16px;
+    }
+    .example-card code {
+      display: block;
+      color: #bae6fd;
+      font-size: 12px;
+      margin-top: 5px;
+      word-break: break-word;
+    }
+    .canvas-demo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    canvas {
+      width: 100%;
+      min-height: 260px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #020617;
+    }
+    .quiz-options {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .quiz-options button {
+      text-align: left;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      padding: 13px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .quiz-options button:hover { border-color: rgba(56,189,248,.65); }
+    .result {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .result.good { border-color: rgba(34,197,94,.55); color: #bbf7d0; background: rgba(34,197,94,.12); }
+    .result.bad { border-color: rgba(239,68,68,.55); color: #fecaca; background: rgba(239,68,68,.12); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 14px;
+      font-size: 14px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 11px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: #e0f2fe;
+      background: rgba(56,189,248,.08);
+    }
+    td { color: var(--muted); }
+    .notice {
+      border-left: 4px solid var(--accent);
+      background: rgba(56,189,248,.09);
+      padding: 14px 16px;
+      border-radius: 14px;
+      color: #dbeafe;
+      line-height: 1.65;
+    }
+    .warn {
+      border-left-color: var(--warn);
+      background: rgba(245,158,11,.09);
+      color: #fde68a;
+    }
+    @media (max-width: 860px) {
+      .hero, .grid-2, .grid-3, .canvas-demo, .swatch-wrap { grid-template-columns: 1fr; }
+      .array-tools { grid-template-columns: 1fr; }
+      nav { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <div class="hero-card">
+        <h1>OpenCV HSV 색상 시각화 도구</h1>
+        <p class="subtitle">
+          <code>np.array([0, 100, 100])</code>처럼 숫자로만 보이던 HSV 값을 실제 색상으로 바로 확인하는 HTML입니다.
+          OpenCV 기준 HSV 범위인 <b>H: 0~179</b>, <b>S: 0~255</b>, <b>V: 0~255</b>를 그대로 사용합니다.
+        </p>
+        <div class="tags">
+          <span class="tag">HSV → RGB 미리보기</span>
+          <span class="tag">lower / upper 범위 확인</span>
+          <span class="tag">색상 마스크 연습</span>
+          <span class="tag">빨간색 2구간 설명</span>
+          <span class="tag">OpenCV 코드 자동 생성</span>
+        </div>
+      </div>
+      <div class="mini-card">
+        <div>
+          <h2>핵심 기억</h2>
+          <div class="quick-grid">
+            <div class="quick"><strong>H = Hue</strong><span>색상. OpenCV에서는 0~179만 사용합니다.</span></div>
+            <div class="quick"><strong>S = Saturation</strong><span>채도. 낮으면 회색에 가까워지고, 높으면 선명합니다.</span></div>
+            <div class="quick"><strong>V = Value</strong><span>밝기. 낮으면 어둡고, 높으면 밝습니다.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <button onclick="scrollToId('visualizer')">HSV 색상 보기</button>
+    <button onclick="scrollToId('examples')">대표 색상 범위</button>
+    <button onclick="scrollToId('mask-demo')">마스크 실험실</button>
+    <button onclick="scrollToId('code')">OpenCV 코드</button>
+    <button onclick="scrollToId('quiz')">퀴즈</button>
+    <button onclick="scrollToId('guide')">개념 정리</button>
+  </nav>
+
+  <main>
+    <section id="visualizer">
+      <h2>1. HSV 배열값을 색상으로 바로 보기</h2>
+      <p class="section-desc">
+        아래 값은 OpenCV에서 자주 쓰는 <code>lower_color</code>, <code>upper_color</code> 범위입니다.
+        예를 들어 빨간색을 찾을 때 <code>np.array([0, 100, 100])</code> ~ <code>np.array([10, 255, 255])</code>처럼 작성합니다.
+      </p>
+
+      <div class="grid-2">
+        <div class="control-card">
+          <h3>Lower HSV</h3>
+          <div class="slider-row">
+            <label>H</label>
+            <input id="lh" type="range" min="0" max="179" value="0" oninput="syncFromSliders()" />
+            <input id="lhNum" type="number" min="0" max="179" value="0" oninput="syncFromNums()" />
+          </div>
+          <div class="slider-row">
+            <label>S</label>
+            <input id="ls" type="range" min="0" max="255" value="100" oninput="syncFromSliders()" />
+            <input id="lsNum" type="number" min="0" max="255" value="100" oninput="syncFromNums()" />
+          </div>
+          <div class="slider-row">
+            <label>V</label>
+            <input id="lv" type="range" min="0" max="255" value="100" oninput="syncFromSliders()" />
+            <input id="lvNum" type="number" min="0" max="255" value="100" oninput="syncFromNums()" />
+          </div>
+        </div>
+
+        <div class="control-card">
+          <h3>Upper HSV</h3>
+          <div class="slider-row">
+            <label>H</label>
+            <input id="uh" type="range" min="0" max="179" value="10" oninput="syncFromSliders()" />
+            <input id="uhNum" type="number" min="0" max="179" value="10" oninput="syncFromNums()" />
+          </div>
+          <div class="slider-row">
+            <label>S</label>
+            <input id="us" type="range" min="0" max="255" value="255" oninput="syncFromSliders()" />
+            <input id="usNum" type="number" min="0" max="255" value="255" oninput="syncFromNums()" />
+          </div>
+          <div class="slider-row">
+            <label>V</label>
+            <input id="uv" type="range" min="0" max="255" value="255" oninput="syncFromSliders()" />
+            <input id="uvNum" type="number" min="0" max="255" value="255" oninput="syncFromNums()" />
+          </div>
+        </div>
+      </div>
+
+      <div class="array-tools">
+        <input id="arrayInput" type="text" value="np.array([0, 100, 100])" placeholder="예: np.array([0, 100, 100]) 또는 [60, 80, 200]" />
+        <button class="btn" onclick="applyArrayTo('lower')">Lower에 적용</button>
+        <button class="btn" onclick="applyArrayTo('upper')">Upper에 적용</button>
+      </div>
+
+      <div class="swatch-wrap">
+        <div id="lowerSwatch" class="swatch">
+          <div class="swatch-info">
+            <strong>Lower 색상</strong>
+            <code id="lowerText"></code>
+          </div>
+        </div>
+        <div id="midSwatch" class="swatch">
+          <div class="swatch-info">
+            <strong>중간값 색상</strong>
+            <code id="midText"></code>
+          </div>
+        </div>
+        <div id="upperSwatch" class="swatch">
+          <div class="swatch-info">
+            <strong>Upper 색상</strong>
+            <code id="upperText"></code>
+          </div>
+        </div>
+      </div>
+
+      <div class="box" style="margin-top:16px;">
+        <h3>Hue 색상 범위에서 내가 선택한 구간</h3>
+        <div class="range-bar">
+          <div id="rangeHighlight" class="range-highlight"></div>
+        </div>
+        <div class="range-labels">
+          <span>0 빨강</span>
+          <span>30 노랑</span>
+          <span>60 초록</span>
+          <span>90 하늘</span>
+          <span>120 파랑</span>
+          <span>150 보라</span>
+          <span>179 빨강</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="examples">
+      <h2>2. 자주 쓰는 색상 범위</h2>
+      <p class="section-desc">
+        카드를 누르면 해당 색상의 HSV lower/upper 값이 위 시각화 도구에 바로 적용됩니다.
+        실제 이미지마다 조명, 그림자, 카메라 설정이 달라서 S/V 값은 조정이 필요합니다.
+      </p>
+      <div class="notice warn">
+        <b>빨간색은 왜 2개 범위가 필요할까?</b><br>
+        OpenCV Hue는 원형 색상표를 0~179로 줄인 값입니다. 빨강은 시작점인 0 근처에도 있고 끝점인 179 근처에도 있습니다.
+        그래서 빨간색 마스크는 보통 <code>[0,100,100]~[10,255,255]</code>와
+        <code>[170,100,100]~[179,255,255]</code>를 따로 만든 뒤 합칩니다.
+      </div>
+      <div class="examples" id="exampleCards"></div>
+    </section>
+
+    <section id="mask-demo">
+      <h2>3. HSV 마스크 실험실</h2>
+      <p class="section-desc">
+        왼쪽은 여러 색상 원본 이미지, 오른쪽은 현재 HSV 범위에 들어오는 색만 흰색으로 표시한 마스크입니다.
+        <code>cv2.inRange(hsv, lower, upper)</code>가 어떤 느낌인지 확인할 수 있습니다.
+      </p>
+      <div class="canvas-demo">
+        <div class="box">
+          <h3>원본 색상 샘플</h3>
+          <canvas id="sourceCanvas" width="520" height="320"></canvas>
+        </div>
+        <div class="box">
+          <h3>마스크 결과</h3>
+          <canvas id="maskCanvas" width="520" height="320"></canvas>
+        </div>
+      </div>
+      <div class="notice" style="margin-top:14px;">
+        마스크에서 <b>흰색</b>은 선택된 HSV 범위에 들어온 픽셀이고, <b>검은색</b>은 범위 밖의 픽셀입니다.
+        실제 OpenCV에서는 이 마스크를 <code>cv2.bitwise_and()</code>에 넣어서 원하는 색 영역만 추출합니다.
+      </div>
+    </section>
+
+    <section id="code">
+      <h2>4. 현재 HSV 범위로 OpenCV 코드 만들기</h2>
+      <p class="section-desc">
+        아래 코드는 현재 선택한 lower/upper 값을 자동으로 반영합니다. 그대로 복사해서 Colab, Jupyter, VS Code에서 사용할 수 있습니다.
+      </p>
+      <pre id="opencvCode"></pre>
+      <button class="btn" onclick="copyCode()">코드 복사하기</button>
+      <div id="copyMsg" class="result" style="display:none;">복사 완료!</div>
+    </section>
+
+    <section id="guide">
+      <h2>5. HSV 개념 정리</h2>
+      <div class="grid-3">
+        <div class="box">
+          <h3>H: Hue, 색상</h3>
+          <p>
+            색 자체를 의미합니다. 빨강, 노랑, 초록, 파랑처럼 “무슨 색인가?”를 나타냅니다.
+            OpenCV에서는 일반적인 0~360도 색상환을 절반으로 줄여 <b>0~179</b>로 표현합니다.
+          </p>
+        </div>
+        <div class="box">
+          <h3>S: Saturation, 채도</h3>
+          <p>
+            색이 얼마나 선명한지입니다. S가 낮으면 회색/흰색에 가까워지고,
+            S가 높으면 색이 선명해집니다. 범위는 <b>0~255</b>입니다.
+          </p>
+        </div>
+        <div class="box">
+          <h3>V: Value, 밝기</h3>
+          <p>
+            색이 얼마나 밝은지입니다. V가 낮으면 검정에 가까워지고,
+            V가 높으면 밝아집니다. 범위는 <b>0~255</b>입니다.
+          </p>
+        </div>
+      </div>
+
+      <div class="box" style="margin-top:16px;">
+        <h3>RGB 말고 HSV를 쓰는 이유</h3>
+        <p>
+          RGB는 빨강, 초록, 파랑 값을 직접 비교하기 때문에 조명 변화에 영향을 많이 받습니다.
+          반면 HSV는 색상(H), 채도(S), 밝기(V)를 분리해서 생각할 수 있어서
+          “빨간색 물체만 찾기”, “파란색 영역만 추출하기” 같은 색 기반 분할에 더 편합니다.
+        </p>
+      </div>
+
+      <div class="box" style="margin-top:16px;">
+        <h3>대표 Hue 값</h3>
+        <table>
+          <thead>
+            <tr><th>OpenCV H 값</th><th>대략적인 색</th><th>설명</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0 또는 179</td><td>빨강</td><td>색상환의 시작과 끝이 빨강이라 두 구간으로 나뉩니다.</td></tr>
+            <tr><td>15</td><td>주황</td><td>빨강과 노랑 사이입니다.</td></tr>
+            <tr><td>30</td><td>노랑</td><td>노란색 계열입니다.</td></tr>
+            <tr><td>60</td><td>초록</td><td>초록색 계열입니다.</td></tr>
+            <tr><td>90</td><td>하늘색</td><td>청록/하늘색 계열입니다.</td></tr>
+            <tr><td>120</td><td>파랑</td><td>파란색 계열입니다.</td></tr>
+            <tr><td>150</td><td>보라/분홍</td><td>보라색, 자홍색 계열입니다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2>6. 미니 퀴즈</h2>
+      <p class="section-desc">HSV 범위 설정을 이해했는지 바로 확인해보세요.</p>
+      <div class="box">
+        <h3 id="quizQuestion"></h3>
+        <div id="quizOptions" class="quiz-options"></div>
+        <div id="quizResult" class="result" style="display:none;"></div>
+        <button class="btn" style="margin-top:12px;" onclick="nextQuiz()">다음 문제</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const examples = [
+      {
+        name: "빨강 1구간",
+        lower: [0, 100, 100],
+        upper: [10, 255, 255],
+        note: "빨강의 시작 구간. 보통 빨간색 검출 시 2구간과 함께 사용."
+      },
+      {
+        name: "빨강 2구간",
+        lower: [170, 100, 100],
+        upper: [179, 255, 255],
+        note: "빨강의 끝 구간. 색상환이 원형이라 빨강이 끝에도 존재."
+      },
+      {
+        name: "주황",
+        lower: [10, 80, 80],
+        upper: [25, 255, 255],
+        note: "빨강과 노랑 사이. 조명에 따라 H 범위를 조금 넓혀야 함."
+      },
+      {
+        name: "노랑",
+        lower: [25, 80, 80],
+        upper: [35, 255, 255],
+        note: "밝은 노란색 물체 검출에 자주 사용."
+      },
+      {
+        name: "초록",
+        lower: [40, 60, 60],
+        upper: [85, 255, 255],
+        note: "초록색 물체, 잎, 초록 마커 등을 찾을 때 사용."
+      },
+      {
+        name: "파랑",
+        lower: [100, 80, 80],
+        upper: [130, 255, 255],
+        note: "파란색 물체 검출에 자주 사용."
+      },
+      {
+        name: "보라",
+        lower: [130, 60, 60],
+        upper: [160, 255, 255],
+        note: "보라색, 자주색 계열."
+      },
+      {
+        name: "흰색",
+        lower: [0, 0, 180],
+        upper: [179, 60, 255],
+        note: "채도는 낮고 밝기는 높은 영역."
+      },
+      {
+        name: "검정",
+        lower: [0, 0, 0],
+        upper: [179, 255, 60],
+        note: "밝기 V가 낮은 영역."
+      }
+    ];
+
+    const quizzes = [
+      {
+        q: "OpenCV HSV에서 H의 범위는?",
+        options: ["0~255", "0~179", "0~360", "0~100"],
+        answer: 1,
+        explain: "OpenCV는 Hue 0~360도를 절반으로 줄여 0~179 범위로 사용합니다."
+      },
+      {
+        q: "np.array([0, 100, 100])에서 첫 번째 값 0은 무엇을 의미할까?",
+        options: ["밝기", "채도", "색상", "투명도"],
+        answer: 2,
+        explain: "HSV 순서는 H, S, V입니다. 첫 번째 값은 Hue, 즉 색상입니다."
+      },
+      {
+        q: "S 값이 낮아지면 색은 어떻게 보일까?",
+        options: ["더 선명해진다", "회색/흰색에 가까워진다", "무조건 어두워진다", "파란색이 된다"],
+        answer: 1,
+        explain: "S는 채도입니다. 채도가 낮으면 색의 선명함이 줄어 회색에 가까워집니다."
+      },
+      {
+        q: "V 값이 낮아지면 색은 어떻게 보일까?",
+        options: ["어두워진다", "더 선명해진다", "색상이 빨강으로 바뀐다", "노이즈가 제거된다"],
+        answer: 0,
+        explain: "V는 밝기입니다. V가 낮을수록 검정에 가까워집니다."
+      },
+      {
+        q: "빨간색 검출에서 HSV 범위를 2개로 나누는 이유는?",
+        options: ["빨강은 S 값이 없어서", "빨강이 Hue의 시작과 끝에 걸쳐 있어서", "OpenCV가 빨간색을 지원하지 않아서", "V 값만으로 빨강을 구분해서"],
+        answer: 1,
+        explain: "Hue 색상환은 원형입니다. 빨강은 0 근처와 179 근처에 걸쳐 있어 두 범위를 합치는 경우가 많습니다."
+      },
+      {
+        q: "cv2.inRange(hsv, lower, upper)의 결과로 나오는 것은?",
+        options: ["RGB 이미지", "마스크 이미지", "히스토그램", "회전 행렬"],
+        answer: 1,
+        explain: "inRange는 범위 안에 들어오면 255, 아니면 0인 흑백 마스크를 만듭니다."
+      }
+    ];
+
+    let currentQuiz = null;
+
+    function clamp(v, min, max) {
+      v = Number(v);
+      if (Number.isNaN(v)) return min;
+      return Math.min(max, Math.max(min, v));
+    }
+
+    function hsvOpenCvToRgb(h, s, v) {
+      h = clamp(h, 0, 179);
+      s = clamp(s, 0, 255) / 255;
+      v = clamp(v, 0, 255) / 255;
+      const hue = h * 2;
+      const c = v * s;
+      const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+      const m = v - c;
+      let rp = 0, gp = 0, bp = 0;
+
+      if (hue >= 0 && hue < 60) [rp, gp, bp] = [c, x, 0];
+      else if (hue >= 60 && hue < 120) [rp, gp, bp] = [x, c, 0];
+      else if (hue >= 120 && hue < 180) [rp, gp, bp] = [0, c, x];
+      else if (hue >= 180 && hue < 240) [rp, gp, bp] = [0, x, c];
+      else if (hue >= 240 && hue < 300) [rp, gp, bp] = [x, 0, c];
+      else [rp, gp, bp] = [c, 0, x];
+
+      return [
+        Math.round((rp + m) * 255),
+        Math.round((gp + m) * 255),
+        Math.round((bp + m) * 255)
+      ];
+    }
+
+    function rgbCss(rgb) {
+      return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+    }
+
+    function rgbHex(rgb) {
+      return "#" + rgb.map(x => x.toString(16).padStart(2, "0")).join("").toUpperCase();
+    }
+
+    function getVals(prefix) {
+      return [
+        Number($(prefix + "h").value),
+        Number($(prefix + "s").value),
+        Number($(prefix + "v").value)
+      ];
+    }
+
+    function setVals(prefix, arr) {
+      const h = clamp(arr[0], 0, 179);
+      const s = clamp(arr[1], 0, 255);
+      const v = clamp(arr[2], 0, 255);
+      $(prefix + "h").value = h;
+      $(prefix + "s").value = s;
+      $(prefix + "v").value = v;
+      $(prefix + "hNum").value = h;
+      $(prefix + "sNum").value = s;
+      $(prefix + "vNum").value = v;
+    }
+
+    function syncFromSliders() {
+      ["l", "u"].forEach(p => {
+        $(p + "hNum").value = $(p + "h").value;
+        $(p + "sNum").value = $(p + "s").value;
+        $(p + "vNum").value = $(p + "v").value;
+      });
+      updateAll();
+    }
+
+    function syncFromNums() {
+      ["l", "u"].forEach(p => {
+        $(p + "h").value = clamp($(p + "hNum").value, 0, 179);
+        $(p + "s").value = clamp($(p + "sNum").value, 0, 255);
+        $(p + "v").value = clamp($(p + "vNum").value, 0, 255);
+        $(p + "hNum").value = $(p + "h").value;
+        $(p + "sNum").value = $(p + "s").value;
+        $(p + "vNum").value = $(p + "v").value;
+      });
+      updateAll();
+    }
+
+    function parseArrayText(text) {
+      const nums = text.match(/-?\d+(\.\d+)?/g);
+      if (!nums || nums.length < 3) {
+        alert("HSV 값 3개를 입력해주세요. 예: np.array([0, 100, 100])");
+        return null;
+      }
+      return [
+        clamp(nums[0], 0, 179),
+        clamp(nums[1], 0, 255),
+        clamp(nums[2], 0, 255)
+      ];
+    }
+
+    function applyArrayTo(target) {
+      const arr = parseArrayText($("arrayInput").value);
+      if (!arr) return;
+      setVals(target === "lower" ? "l" : "u", arr);
+      updateAll();
+    }
+
+    function hsvText(arr) {
+      const rgb = hsvOpenCvToRgb(arr[0], arr[1], arr[2]);
+      return `HSV np.array([${arr.join(", ")}]) / RGB ${rgb.join(", ")} / HEX ${rgbHex(rgb)}`;
+    }
+
+    function updateSwatches() {
+      const lower = getVals("l");
+      const upper = getVals("u");
+      const mid = [
+        Math.round((lower[0] + upper[0]) / 2),
+        Math.round((lower[1] + upper[1]) / 2),
+        Math.round((lower[2] + upper[2]) / 2)
+      ];
+
+      const lowerRgb = hsvOpenCvToRgb(...lower);
+      const upperRgb = hsvOpenCvToRgb(...upper);
+      const midRgb = hsvOpenCvToRgb(...mid);
+
+      $("lowerSwatch").style.background = rgbCss(lowerRgb);
+      $("upperSwatch").style.background = rgbCss(upperRgb);
+      $("midSwatch").style.background = rgbCss(midRgb);
+
+      $("lowerText").textContent = hsvText(lower);
+      $("upperText").textContent = hsvText(upper);
+      $("midText").textContent = hsvText(mid);
+    }
+
+    function updateHueRange() {
+      const lower = getVals("l");
+      const upper = getVals("u");
+      const left = (Math.min(lower[0], upper[0]) / 179) * 100;
+      const right = (Math.max(lower[0], upper[0]) / 179) * 100;
+      const el = $("rangeHighlight");
+      el.style.left = left + "%";
+      el.style.width = Math.max(1, right - left) + "%";
+    }
+
+    function updateCode() {
+      const lower = getVals("l");
+      const upper = getVals("u");
+      const isRedWrap = lower[0] <= 10 && upper[0] <= 20;
+
+      let code = `import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. 이미지 불러오기
+image = cv2.imread("sample.jpg")
+
+# 2. BGR 이미지를 HSV로 변환
+hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+# 3. 찾고 싶은 색상의 HSV 범위 설정
+lower_color = np.array([${lower.join(", ")}])
+upper_color = np.array([${upper.join(", ")}])
+
+# 4. 범위 안에 들어오는 픽셀은 흰색(255), 아니면 검정(0)인 마스크 생성
+mask = cv2.inRange(hsv, lower_color, upper_color)
+
+# 5. 마스크 영역만 원본에서 추출
+result = cv2.bitwise_and(image, image, mask=mask)
+
+# 6. 화면 출력
+plt.figure(figsize=(12, 4))
+
+plt.subplot(1, 3, 1)
+plt.title("Original")
+plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+plt.axis("off")
+
+plt.subplot(1, 3, 2)
+plt.title("Mask")
+plt.imshow(mask, cmap="gray")
+plt.axis("off")
+
+plt.subplot(1, 3, 3)
+plt.title("Result")
+plt.imshow(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
+plt.axis("off")
+
+plt.show()
+`;
+
+      if (isRedWrap) {
+        code += `
+# 참고: 빨간색은 보통 Hue의 시작과 끝을 모두 잡습니다.
+lower_red1 = np.array([0, 100, 100])
+upper_red1 = np.array([10, 255, 255])
+lower_red2 = np.array([170, 100, 100])
+upper_red2 = np.array([179, 255, 255])
+
+mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+red_mask = cv2.bitwise_or(mask1, mask2)
+
+red_result = cv2.bitwise_and(image, image, mask=red_mask)
+`;
+      }
+      $("opencvCode").textContent = code;
+    }
+
+    function hueInRange(h, lowerH, upperH) {
+      if (lowerH <= upperH) return h >= lowerH && h <= upperH;
+      return h >= lowerH || h <= upperH;
+    }
+
+    function inHsvRange(hsv, lower, upper) {
+      const [h, s, v] = hsv;
+      return hueInRange(h, lower[0], upper[0]) &&
+             s >= lower[1] && s <= upper[1] &&
+             v >= lower[2] && v <= upper[2];
+    }
+
+    function drawSourceAndMask() {
+      const src = $("sourceCanvas");
+      const mask = $("maskCanvas");
+      const sctx = src.getContext("2d");
+      const mctx = mask.getContext("2d");
+      const w = src.width;
+      const h = src.height;
+
+      sctx.clearRect(0,0,w,h);
+      mctx.clearRect(0,0,w,h);
+
+      const circles = [
+        {x:80, y:80, r:45, hsv:[0, 240, 240], label:"red"},
+        {x:210, y:80, r:45, hsv:[30, 230, 240], label:"yellow"},
+        {x:340, y:80, r:45, hsv:[60, 230, 220], label:"green"},
+        {x:460, y:80, r:45, hsv:[120, 240, 240], label:"blue"},
+        {x:140, y:210, r:52, hsv:[150, 210, 230], label:"purple"},
+        {x:300, y:210, r:52, hsv:[90, 190, 230], label:"cyan"},
+        {x:445, y:215, r:44, hsv:[15, 235, 230], label:"orange"},
+        {x:70, y:230, r:32, hsv:[0, 20, 235], label:"white"},
+      ];
+
+      const bg = sctx.createLinearGradient(0,0,w,h);
+      bg.addColorStop(0, "#1f2937");
+      bg.addColorStop(1, "#020617");
+      sctx.fillStyle = bg;
+      sctx.fillRect(0,0,w,h);
+
+      mctx.fillStyle = "#000";
+      mctx.fillRect(0,0,w,h);
+
+      const lower = getVals("l");
+      const upper = getVals("u");
+
+      circles.forEach(c => {
+        const rgb = hsvOpenCvToRgb(...c.hsv);
+        sctx.beginPath();
+        sctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        sctx.fillStyle = rgbCss(rgb);
+        sctx.fill();
+        sctx.lineWidth = 4;
+        sctx.strokeStyle = "rgba(255,255,255,.7)";
+        sctx.stroke();
+
+        sctx.fillStyle = "rgba(0,0,0,.55)";
+        sctx.font = "bold 15px sans-serif";
+        sctx.textAlign = "center";
+        sctx.fillText(c.label, c.x, c.y + c.r + 22);
+
+        if (inHsvRange(c.hsv, lower, upper)) {
+          mctx.beginPath();
+          mctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+          mctx.fillStyle = "#fff";
+          mctx.fill();
+        } else {
+          mctx.beginPath();
+          mctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+          mctx.fillStyle = "#111827";
+          mctx.fill();
+        }
+
+        mctx.lineWidth = 2;
+        mctx.strokeStyle = "#334155";
+        mctx.stroke();
+      });
+    }
+
+    function updateAll() {
+      updateSwatches();
+      updateHueRange();
+      updateCode();
+      drawSourceAndMask();
+    }
+
+    function renderExamples() {
+      const wrap = $("exampleCards");
+      wrap.innerHTML = "";
+      examples.forEach((ex, idx) => {
+        const mid = [
+          Math.round((ex.lower[0] + ex.upper[0]) / 2),
+          Math.round((ex.lower[1] + ex.upper[1]) / 2),
+          Math.round((ex.lower[2] + ex.upper[2]) / 2)
+        ];
+        const rgb = hsvOpenCvToRgb(...mid);
+        const div = document.createElement("div");
+        div.className = "example-card";
+        div.onclick = () => {
+          setVals("l", ex.lower);
+          setVals("u", ex.upper);
+          updateAll();
+          scrollToId("visualizer");
+        };
+        div.innerHTML = `
+          <div class="example-head">
+            <strong>${ex.name}</strong>
+            <span class="dot" style="background:${rgbCss(rgb)}"></span>
+          </div>
+          <code>lower = np.array([${ex.lower.join(", ")}])</code>
+          <code>upper = np.array([${ex.upper.join(", ")}])</code>
+          <p>${ex.note}</p>
+        `;
+        wrap.appendChild(div);
+      });
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText($("opencvCode").textContent).then(() => {
+        $("copyMsg").style.display = "block";
+        setTimeout(() => $("copyMsg").style.display = "none", 1500);
+      });
+    }
+
+    function nextQuiz() {
+      currentQuiz = quizzes[Math.floor(Math.random() * quizzes.length)];
+      $("quizQuestion").textContent = currentQuiz.q;
+      const wrap = $("quizOptions");
+      wrap.innerHTML = "";
+      $("quizResult").style.display = "none";
+      $("quizResult").className = "result";
+      currentQuiz.options.forEach((op, idx) => {
+        const btn = document.createElement("button");
+        btn.textContent = op;
+        btn.onclick = () => checkQuiz(idx);
+        wrap.appendChild(btn);
+      });
+    }
+
+    function checkQuiz(idx) {
+      const res = $("quizResult");
+      res.style.display = "block";
+      if (idx === currentQuiz.answer) {
+        res.className = "result good";
+        res.innerHTML = `<b>정답!</b><br>${currentQuiz.explain}`;
+      } else {
+        res.className = "result bad";
+        res.innerHTML = `<b>오답</b><br>정답: ${currentQuiz.options[currentQuiz.answer]}<br>${currentQuiz.explain}`;
+      }
+    }
+
+    function scrollToId(id) {
+      document.getElementById(id).scrollIntoView({behavior: "smooth", block: "start"});
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderExamples();
+      updateAll();
+      nextQuiz();
+    });
+  </script>
+</body>
+</html>

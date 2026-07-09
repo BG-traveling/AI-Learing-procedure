@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADsP 실전 모의시험 · 기출빈도 기반</title>
+<style>
+:root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--text:#e5e7eb;--muted:#9ca3af;--accent:#60a5fa;--accent2:#a78bfa;--ok:#34d399;--bad:#f87171;--warn:#fbbf24;--line:rgba(255,255,255,.12);--shadow:0 22px 70px rgba(0,0,0,.32)}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Pretendard,"Noto Sans KR",sans-serif;background:linear-gradient(135deg,#0f172a,#111827 48%,#1e1b4b);color:var(--text);line-height:1.7;font-size:15.5px}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 18px 80px}
+.panel{background:rgba(17,24,39,.88);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:26px}
+h1{font-size:clamp(26px,4.5vw,40px);letter-spacing:-.05em;margin:0 0 10px;line-height:1.15}
+h1 span{color:var(--accent)}
+.muted{color:var(--muted)}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.badge{border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:999px;padding:6px 12px;font-weight:850;font-size:13px;color:#dbeafe}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0}
+.info{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.22);border-radius:16px;padding:14px 16px}
+.info b{display:block;font-size:20px;color:#bfdbfe}
+.info span{font-size:13px;color:#cbd5e1}
+.note{background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:16px;padding:14px 16px;font-size:14px;color:#bbf7d0;margin:14px 0}
+.btn{border:0;border-radius:14px;padding:14px 22px;font-weight:900;font-size:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#08111f;transition:.15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.ghost{background:#172033;color:var(--text);border:1px solid var(--line);font-size:14px;padding:11px 16px}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn.danger{background:linear-gradient(135deg,#f87171,#ef4444);color:#1f0808}
+
+/* ---- 시험 화면 ---- */
+.exam-top{position:sticky;top:0;z-index:20;background:rgba(15,23,42,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.exam-bar{max-width:1100px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#timer{font-variant-numeric:tabular-nums;font-weight:950;font-size:24px;letter-spacing:.02em;color:#bfdbfe;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);border-radius:12px;padding:6px 14px}
+#timer.low{color:#fecaca;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.4);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.55}}
+#answeredInfo{color:var(--muted);font-size:13px;font-weight:800}
+.exam-layout{display:grid;grid-template-columns:1fr 250px;gap:18px;margin-top:18px}
+.q-subject{display:inline-flex;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:900;margin-bottom:10px}
+.q-subject.s1{background:rgba(96,165,250,.14);color:#93c5fd;border:1px solid rgba(96,165,250,.35)}
+.q-subject.s2{background:rgba(52,211,153,.12);color:#6ee7b7;border:1px solid rgba(52,211,153,.35)}
+.q-subject.s3{background:rgba(167,139,250,.12);color:#c4b5fd;border:1px solid rgba(167,139,250,.35)}
+.q-text{font-size:17.5px;font-weight:800;line-height:1.65;margin:6px 0 18px;letter-spacing:-.015em}
+.q-text .no{color:var(--accent);margin-right:6px}
+.choice{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:14px;padding:13px 15px;margin:9px 0;cursor:pointer;transition:.13s;line-height:1.6}
+.choice:hover{border-color:var(--accent)}
+.choice .mark{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center;font-size:12.5px;font-weight:900;color:var(--muted);margin-top:1px}
+.choice.sel{border-color:var(--accent);background:rgba(96,165,250,.1)}
+.choice.sel .mark{border-color:var(--accent);background:var(--accent);color:#08111f}
+.q-nav{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.q-nav .spacer{flex:1}
+/* OMR */
+.omr{position:sticky;top:76px;align-self:start}
+.omr h3{margin:0 0 10px;font-size:14px;color:#bfdbfe}
+.omr-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.omr-cell{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);border-radius:9px;padding:7px 0;font-size:12.5px;font-weight:900;text-align:center}
+.omr-cell.done{background:rgba(96,165,250,.22);color:#bfdbfe;border-color:rgba(96,165,250,.45)}
+.omr-cell.cur{outline:2px solid var(--accent);color:#fff}
+.omr-cell.flag{position:relative}
+.omr-cell.flag::after{content:"";position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--warn)}
+.omr-legend{margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.8}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+.submit-warn{display:none;margin-top:12px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:#fde68a;border-radius:12px;padding:10px 12px;font-size:13px;font-weight:800}
+.submit-warn.show{display:block}
+
+/* ---- 결과 화면 ---- */
+.result-banner{border-radius:20px;padding:26px;text-align:center;margin-bottom:18px}
+.result-banner.pass{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.35)}
+.result-banner.fail{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35)}
+.result-banner h2{margin:0;font-size:34px;letter-spacing:-.04em}
+.result-banner.pass h2{color:#6ee7b7}
+.result-banner.fail h2{color:#fca5a5}
+.result-banner p{margin:8px 0 0;color:var(--muted)}
+.score-big{font-size:52px;font-weight:950;letter-spacing:-.04em;margin:8px 0}
+.subj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:16px 0}
+.subj{border:1px solid var(--line);border-radius:16px;padding:16px;background:rgba(255,255,255,.03)}
+.subj h4{margin:0 0 8px;font-size:14px}
+.subj .bar-track{height:10px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden;margin:8px 0 6px}
+.subj .bar-fill{height:100%;border-radius:999px}
+.subj .pct{font-weight:900;font-size:18px}
+.subj.cut .pct{color:#fca5a5}
+.subj .cut-tag{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:900;color:#fca5a5;border:1px solid rgba(248,113,113,.4);background:rgba(248,113,113,.1);border-radius:999px;padding:2px 8px}
+.review-item{border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:12px 0;background:rgba(255,255,255,.03)}
+.review-item.wrong{border-color:rgba(248,113,113,.35)}
+.review-item.correct{border-color:rgba(52,211,153,.3)}
+.review-q{font-weight:800;margin:6px 0 10px;line-height:1.6}
+.review-a{font-size:14px;margin:4px 0}
+.review-a b{color:#6ee7b7}
+.review-a.your-wrong b{color:#fca5a5}
+.review-exp{margin-top:10px;background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.2);border-radius:12px;padding:11px 13px;font-size:14px;color:#dbeafe;line-height:1.7}
+.freq-tag{display:inline-block;font-size:11.5px;font-weight:900;color:#c4b5fd;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:999px;padding:2px 9px;margin-left:8px}
+.review-filter{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap}
+.choice.correct{border-color:var(--ok);background:rgba(52,211,153,.14)}
+.choice.correct .mark{border-color:var(--ok);background:var(--ok);color:#08111f}
+.choice.wrong{border-color:var(--bad);background:rgba(248,113,113,.14)}
+.choice.wrong .mark{border-color:var(--bad);background:var(--bad);color:#08111f}
+.choice.disabled{pointer-events:none;opacity:.92}
+.scope-radio{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:800;cursor:pointer}
+.scope-radio input{accent-color:var(--accent)}
+.mode-panel{margin-top:18px}
+.hidden{display:none!important}
+@media(max-width:860px){.exam-layout{grid-template-columns:1fr}.omr{position:static;order:-1}.omr-grid{grid-template-columns:repeat(10,1fr)}}
+</style>
+</head>
+<body>
+
+<!-- ===== 시작 화면 ===== -->
+<div id="intro" class="wrap">
+  <div class="panel">
+    <div class="badge-row"><span class="badge">실전 모의시험</span><span class="badge">기출빈도 기반</span><span class="badge">2026년 8월 대비</span></div>
+    <h1>ADsP <span>실전 모의시험</span></h1>
+    <p class="muted">실제 ADsP 필기시험과 동일한 구성(객관식 50문항 · 90분)으로 풀어보는 모의시험입니다. 문제는 최근 3년(제41~47회) 기출에서 반복 출제가 확인된 빈출 주제를 기반으로 재구성했습니다.</p>
+    <div class="info-grid">
+      <div class="info"><b>50문항</b><span>1과목 10 · 2과목 10 · 3과목 30</span></div>
+      <div class="info"><b>90분</b><span>시간 종료 시 자동 제출</span></div>
+      <div class="info"><b>60점 합격</b><span>문항당 2점 · 총 100점</span></div>
+      <div class="info"><b>과락 40%</b><span>한 과목이라도 40% 미만이면 불합격</span></div>
+    </div>
+    <div class="note"><b>출제 근거</b> · 전 문항이 최신 회차(제47회, 2025)에서 실제 출제가 확인된 주제이며, 이 중 다수는 제41·44·45회에서도 반복 확인된 매회 빈출 주제입니다. 각 문제의 해설에서 출제 근거를 확인할 수 있습니다. 문항 자체는 저작권 보호를 위해 동일 주제·유형으로 새로 작성한 재구성 문제입니다.</div>
+    <div id="lastRecord" class="muted" style="font-size:13.5px"></div>
+    <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" onclick="startExam()">전체 50문항 실전 모의고사 (90분)</button>
+    </div>
+  </div>
+
+  <div class="panel mode-panel">
+    <h3 style="margin:0 0 6px">과목별로 풀어보기</h3>
+    <p class="muted" style="margin:0 0 14px">한 과목만 골라 집중적으로 풀어봅니다. 시간은 문항 수에 맞춰 자동 배정되며, 과락 판정 없이 정답률만 확인합니다.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn ghost" onclick="startSubjectPractice(1)">1과목 데이터 이해 (10문항)</button>
+      <button class="btn ghost" onclick="startSubjectPractice(2)">2과목 데이터 분석 기획 (10문항)</button>
+      <button class="btn ghost" onclick="startSubjectPractice(3)">3과목 데이터 분석 (30문항)</button>
+    </div>
+  </div>
+
+  <div class="panel mode-panel">
+    <h3 style="margin:0 0 6px">즉시 확인 모드</h3>
+    <p class="muted" style="margin:0 0 14px">문제가 한 문제씩 무작위 순서로 나오고, 답을 고르면 그 자리에서 정답 여부와 해설을 바로 확인합니다. 범위를 선택한 뒤 시작하세요.</p>
+    <div class="badge-row">
+      <label class="scope-radio"><input type="radio" name="instantScope" value="all" checked> 전체 50문항</label>
+      <label class="scope-radio"><input type="radio" name="instantScope" value="1"> 1과목만</label>
+      <label class="scope-radio"><input type="radio" name="instantScope" value="2"> 2과목만</label>
+      <label class="scope-radio"><input type="radio" name="instantScope" value="3"> 3과목만</label>
+    </div>
+    <div style="margin-top:14px">
+      <button class="btn" onclick="startInstantModeFromIntro()">즉시 확인 모드 시작</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 시험 화면 ===== -->
+<div id="exam" class="hidden">
+  <div class="exam-top">
+    <div class="exam-bar">
+      <div id="timer">90:00</div>
+      <span id="examModeLabel" class="badge" style="display:none"></span>
+      <div id="answeredInfo">0 / 50 응답</div>
+      <div style="flex:1"></div>
+      <button class="btn ghost" onclick="toggleFlag()" id="flagBtn">🚩 나중에 다시 보기</button>
+      <button class="btn danger" onclick="trySubmit()">답안 제출</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="exam-layout">
+      <div class="panel" id="qPanel">
+        <span id="qSubject" class="q-subject"></span>
+        <div id="qText" class="q-text"></div>
+        <div id="choices"></div>
+        <div class="q-nav">
+          <button class="btn ghost" onclick="move(-1)">← 이전</button>
+          <div class="spacer"></div>
+          <button class="btn ghost" onclick="move(1)">다음 →</button>
+        </div>
+        <div id="submitWarn" class="submit-warn"></div>
+      </div>
+      <div class="omr">
+        <div class="panel" style="padding:16px">
+          <h3>답안 표기 현황</h3>
+          <div id="omrGrid" class="omr-grid"></div>
+          <div class="omr-legend">
+            <span class="dot" style="background:rgba(96,165,250,.6)"></span>응답 완료&nbsp;&nbsp;
+            <span class="dot" style="background:#fbbf24"></span>다시 보기 표시
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 결과 화면 ===== -->
+<div id="result" class="wrap hidden">
+  <div id="resultBanner" class="result-banner">
+    <h2 id="resultTitle"></h2>
+    <div class="score-big" id="resultScore"></div>
+    <p id="resultDesc"></p>
+  </div>
+  <div class="panel">
+    <h3 style="margin:0 0 6px">과목별 결과</h3>
+    <div id="subjGrid" class="subj-grid"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+      <button class="btn" onclick="location.reload()">처음부터 다시 풀기</button>
+      <button class="btn ghost" id="retryWrongBtn" onclick="retryWrong()">틀린 문제만 다시 풀기</button>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h3 style="margin:0 0 4px">문제 다시보기</h3>
+    <div class="review-filter">
+      <button class="btn ghost" onclick="filterReview('all')">전체</button>
+      <button class="btn ghost" onclick="filterReview('wrong')">틀린 문제만</button>
+    </div>
+    <div id="reviewList"></div>
+  </div>
+</div>
+
+<!-- ===== 즉시 확인 모드 화면 ===== -->
+<div id="instant" class="wrap hidden">
+  <div class="panel">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+      <span id="instantProgress" class="badge"></span>
+      <span id="instantScoreBadge" class="badge"></span>
+      <div style="flex:1"></div>
+      <button class="btn ghost" onclick="endInstant()">종료하고 처음으로</button>
+    </div>
+    <span id="instantSubject" class="q-subject"></span>
+    <div id="instantQText" class="q-text"></div>
+    <div id="instantChoices"></div>
+    <div id="instantFeedback" class="review-exp hidden" style="margin-top:16px"></div>
+    <div class="q-nav">
+      <div class="spacer"></div>
+      <button class="btn" id="instantNextBtn" onclick="nextInstant()" disabled>다음 문제 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 즉시 확인 모드 결과 화면 ===== -->
+<div id="instantResult" class="wrap hidden">
+  <div id="instantResultBanner" class="result-banner">
+    <h2>즉시 확인 모드 완료</h2>
+    <div class="score-big" id="instantResultScore"></div>
+    <p id="instantResultDesc"></p>
+  </div>
+  <div class="panel">
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" onclick="location.reload()">처음으로</button>
+      <button class="btn ghost" id="instantRetryWrongBtn" onclick="retryInstantWrong()">틀린 문제만 다시 즉시 확인</button>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h3 style="margin:0 0 4px">문제 다시보기</h3>
+    <div id="instantReviewList"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+// ===== 1과목 데이터 이해 (1~10) =====
+{s:1,topic:"SECI 모델",freq:"제47회 출제 · 매회 빈출",
+q:"노나카의 지식 순환 과정(SECI 모델)에서 암묵지와 형식지가 상호작용하는 4단계의 올바른 순서는?",
+c:["표출화 → 공통화 → 내면화 → 연결화","공통화 → 표출화 → 연결화 → 내면화","연결화 → 표출화 → 공통화 → 내면화","공통화 → 연결화 → 표출화 → 내면화"],
+a:1,
+e:"SECI 모델은 공통화(암묵지→암묵지) → 표출화(암묵지→형식지) → 연결화(형식지→형식지) → 내면화(형식지→암묵지) 순으로 지식이 순환합니다."},
+
+{s:1,topic:"DIKW 피라미드",freq:"제47회 출제 · 매회 빈출",
+q:"다음 사례 중 DIKW 피라미드의 '지식(Knowledge)'에 해당하는 것은?",
+c:["A마트의 생수 가격은 1,000원, B마트는 1,200원이다.","A마트의 생수가 B마트보다 200원 더 싸다.","비 오는 날에는 생수 판매량이 줄어드는 경향이 있으므로 발주량을 줄여야겠다.","앞으로도 상권 분석에 기반한 발주 전략이 유통업 경쟁력의 핵심이 될 것이다."],
+a:2,
+e:"가격 그 자체는 데이터, 비교해 의미를 부여하면 정보, 정보를 구조화해 패턴·규칙으로 만들어 행동에 적용하면 지식, 축적된 지식에서 나온 창의적 판단은 지혜입니다."},
+
+{s:1,topic:"데이터베이스의 특성",freq:"제47회 출제",
+q:"데이터베이스의 특성 중 '정보의 축적 및 전달 측면'에 해당하는 특성으로 옳은 것은?",
+c:["통합성, 공용성, 가변성","기계 가독성, 검색 가능성, 원격 조작 가능성","주제지향성, 시계열성, 비휘발성","정확성, 일관성, 무결성"],
+a:1,
+e:"정보의 축적·전달 측면에서 DB는 기계 가독성, 검색 가능성, 원격 조작 가능성을 가집니다. 통합·저장·공용·변화는 DB의 일반적 4대 특징이고, 주제지향성 등은 데이터 웨어하우스의 특성입니다."},
+
+{s:1,topic:"익명화와 가명화",freq:"제47회 출제",
+q:"개인정보 비식별화 기법에 대한 설명으로 가장 적절한 것은?",
+c:["가명화는 어떠한 방법으로도 원래 개인을 다시 식별할 수 없도록 하는 처리이다.","익명화된 데이터는 매핑 테이블을 이용해 언제든 원본 개인정보로 복원할 수 있다.","익명화는 재식별이 불가능하도록 하는 처리이고, 가명화는 별도 매핑 정보가 있으면 재식별이 가능하다.","가명화와 익명화는 모두 데이터의 활용 가치를 완전히 제거하는 기법이다."],
+a:2,
+e:"익명화는 재식별이 불가능한 비가역적 처리, 가명화는 매핑(추가) 정보와 결합하면 재식별 가능한 처리입니다."},
+
+{s:1,topic:"빅데이터 3V",freq:"제47회 출제 · 매회 빈출",
+q:"빅데이터의 본질적인 3V 특성에 해당하지 않는 것은?",
+c:["Volume(규모)","Variety(다양성)","Velocity(속도)","Availability(가용성)"],
+a:3,
+e:"본질적 3V는 Volume·Variety·Velocity입니다. Value(가치)와 Veracity(신뢰성)는 확장 개념이며, Availability는 3V·4V 논의와 무관합니다."},
+
+{s:1,topic:"연관분석 지표",freq:"제47회 출제 · 매회 빈출",
+q:"장바구니 분석(연관분석)에서 사용하는 평가 지표가 아닌 것은?",
+c:["지지도(Support)","신뢰도(Confidence)","재현율(Recall)","향상도(Lift)"],
+a:2,
+e:"연관분석의 3대 지표는 지지도·신뢰도·향상도입니다. 재현율은 분류 모델의 평가 지표(혼동행렬 기반)로, 연관분석과는 무관합니다."},
+
+{s:1,topic:"빅데이터 활용 기법",freq:"제47회 출제 · 빈출",
+q:"빅데이터 활용 기법과 활용 사례의 연결이 가장 적절하지 않은 것은?",
+c:["연관규칙학습 - 맥주를 구매한 고객이 어떤 상품을 함께 사는지 분석","유전알고리즘 - 최대 시청률을 얻기 위한 프로그램 편성 최적화","감정분석 - 고객 리뷰의 긍정·부정 성향 판별","군집분석 - 시간에 따른 주가 변화 예측"],
+a:3,
+e:"군집분석은 유사한 특성의 개체를 그룹으로 묶는 기법이지 시계열 예측 기법이 아닙니다. 주가 등 연속값의 시간 변화 예측은 회귀분석·시계열분석의 영역입니다."},
+
+{s:1,topic:"위기요인과 통제방안",freq:"제47회 출제 · 빈출",
+q:"빅데이터의 위기요인과 그 통제방안의 연결로 옳은 것은?",
+c:["사생활 침해 - 알고리즘 접근 허용","책임원칙 훼손 - 동의제를 책임제로 전환","데이터 오용 - 결과 기반 책임원칙 고수","사생활 침해 - 동의제를 책임제로 전환"],
+a:3,
+e:"사생활 침해↔동의제에서 책임제로, 책임원칙 훼손↔결과 기반 책임원칙 고수, 데이터 오용↔알고리즘 접근권 허용으로 짝지어집니다."},
+
+{s:1,topic:"OLTP와 OLAP",freq:"제47회 출제",
+q:"OLTP와 OLAP에 대한 설명으로 가장 적절한 것은?",
+c:["OLTP는 데이터 분석과 의사결정 지원을 주목적으로 한다.","OLAP는 실시간 거래 데이터의 삽입·수정·삭제 처리에 최적화되어 있다.","OLTP는 실시간 거래 처리, OLAP는 다차원 데이터 분석 처리를 주목적으로 한다.","OLTP와 OLAP는 모두 비정형 데이터 저장 전용 시스템이다."],
+a:2,
+e:"OLTP(Online Transaction Processing)는 주문·결제 같은 실시간 거래 처리, OLAP(Online Analytical Processing)는 축적된 데이터의 다차원 분석을 목적으로 합니다."},
+
+{s:1,topic:"데이터 사이언티스트 역량",freq:"제47회 출제 · 빈출",
+q:"데이터 사이언티스트에게 요구되는 소프트 스킬(Soft Skill)에 해당하지 않는 것은?",
+c:["스토리텔링과 시각화를 통한 설득력 있는 전달","창의적 사고와 호기심에 기반한 통찰력 있는 분석","다분야 간 협력을 위한 커뮤니케이션","빅데이터 분석 기술에 대한 이론적 지식과 숙련도"],
+a:3,
+e:"분석 기술의 이론적 지식과 숙련도는 하드 스킬입니다. 소프트 스킬은 통찰력 있는 분석, 설득력 있는 전달, 다분야 간 협력으로 구성됩니다."},
+
+// ===== 2과목 데이터 분석 기획 (11~20) =====
+{s:2,topic:"분석 기획 고려사항",freq:"제47회 출제",
+q:"데이터 분석 프로젝트 기획 시 고려사항으로 가장 적절하지 않은 것은?",
+c:["가용한 데이터의 존재 여부와 유형을 먼저 파악한다.","유사 분석 시나리오나 사례(유즈케이스)를 탐색해 활용한다.","높은 정확도를 위해 처음부터 가장 복잡한 분석 모델을 우선 채택한다.","장애요소에 대한 사전 계획과 변화 관리를 수립한다."],
+a:2,
+e:"복잡한 모델이 항상 좋은 것은 아니며, 단순한 모델이 해석과 운영 면에서 더 우수할 수 있습니다. 기획 시에는 가용 데이터, 유즈케이스, 장애요소 사전계획을 고려합니다."},
+
+{s:2,topic:"데이터 유형 분류",freq:"제47회 출제 · 빈출",
+q:"다음 중 데이터 형태에 대한 설명으로 가장 적절한 것은?",
+c:["센서에서 수집되는 로그 데이터는 완전히 고정된 스키마를 가지므로 정형 데이터이다.","XML, JSON과 같이 스키마 정보는 있으나 형태가 유연한 데이터는 반정형 데이터이다.","관계형 데이터베이스의 테이블은 비정형 데이터의 대표 사례이다.","동영상, 이미지 파일은 반정형 데이터로 분류된다."],
+a:1,
+e:"반정형 데이터는 스키마(메타 구조)는 있지만 형태가 유동적인 XML·JSON·센서 로그 등입니다. RDB 테이블은 정형, 동영상·이미지는 비정형입니다."},
+
+{s:2,topic:"하향식 접근법 단계",freq:"제47회 출제 · 빈출",
+q:"하향식 접근법의 '문제 탐색(Problem Discovery)' 단계에서 수행하는 활동으로 가장 적절하지 않은 것은?",
+c:["비즈니스 모델 캔버스를 활용해 분석 기회를 발굴한다.","외부 참조 모델(유사 업종 사례)을 활용해 분석 기회를 탐색한다.","거시적 관점(STEEP)에서 분석 기회 발굴 범위를 확장한다.","도출된 분석 과제의 경제적 타당성을 평가하여 최종 과제를 확정한다."],
+a:3,
+e:"타당성 평가와 최종 과제 확정은 마지막 단계인 '타당성 검토' 단계의 활동입니다. 문제 탐색 단계에서는 비즈니스 모델·외부 참조모델·시야 확장을 통해 기회를 발굴합니다."},
+
+{s:2,topic:"분석 주제 4유형",freq:"제47회 출제 · 빈출",
+q:"분석 대상(What)은 명확하지만 분석 방법(How)이 명확하지 않은 경우에 해당하는 분석 주제 유형은?",
+c:["최적화(Optimization)","솔루션(Solution)","통찰(Insight)","발견(Discovery)"],
+a:1,
+e:"대상O·방법O=최적화, 대상O·방법X=솔루션, 대상X·방법O=통찰, 대상X·방법X=발견입니다."},
+
+{s:2,topic:"상향식·하향식 접근법",freq:"제47회 출제 · 빈출",
+q:"분석 과제 도출 접근법에 대한 설명으로 가장 적절한 것은?",
+c:["분석 대상과 문제가 명확할 때는 상향식 접근법을 사용한다.","상향식 접근법은 문제탐색→문제정의→해결방안탐색→타당성검토의 순서로 진행된다.","문제 정의 자체가 어려운 경우 데이터 기반으로 문제를 탐색하는 상향식 접근법을 사용한다.","하향식 접근법은 주로 비지도학습을 활용해 데이터에서 패턴을 발굴한다."],
+a:2,
+e:"문제가 명확하면 하향식(4단계 프로세스), 문제 정의가 어려우면 데이터에서 인사이트를 찾는 상향식(비지도학습·프로토타이핑)을 사용합니다."},
+
+{s:2,topic:"우선순위 평가 기준",freq:"제47회 출제",
+q:"분석 마스터플랜 수립 시 분석 과제의 우선순위를 결정하기 위해 고려하는 요소로 가장 거리가 먼 것은?",
+c:["전략적 중요도","비즈니스 성과 및 ROI","실행 용이성","분석 조직의 직급 체계"],
+a:3,
+e:"우선순위 결정 요소는 전략적 중요도, 비즈니스 성과·ROI, 실행 용이성입니다. 조직의 직급 체계는 우선순위 평가와 무관합니다."},
+
+{s:2,topic:"분석 성숙도 단계",freq:"제47회 출제 · 빈출",
+q:"조직이 데이터 분석을 막 시작하여 분석 환경과 시스템을 구축하고 일부 부서에서 실적 분석을 수행하는 단계는?",
+c:["도입 단계","활용 단계","확산 단계","최적화 단계"],
+a:0,
+e:"성숙도 4단계는 도입(환경·시스템 구축)→활용(업무 적용)→확산(전사 관리·공유)→최적화(혁신·성과 기여)입니다. '막 시작, 환경 구축'은 도입 단계입니다."},
+
+{s:2,topic:"분석 조직 구조",freq:"제47회 출제 · 빈출",
+q:"전사의 분석 업무를 별도의 분석 전담 조직에서 총괄하여 담당하고, 전사 차원에서 분석 과제의 우선순위를 정해 진행할 수 있는 조직 구조는?",
+c:["기능구조","분산구조","집중구조","매트릭스 구조"],
+a:2,
+e:"집중구조는 전담 조직이 전사 분석을 총괄해 우선순위 결정이 용이하지만 현업 부서와 이원화될 수 있습니다. 기능구조는 현업 부서별 수행, 분산구조는 분석 인력의 현업 배치 형태입니다."},
+
+{s:2,topic:"데이터 거버넌스",freq:"제47회 출제 · 빈출",
+q:"데이터 거버넌스의 구성 요소로 옳게 짝지어진 것은?",
+c:["원칙, 조직, 프로세스","데이터, 시스템, 비용","인력, 기술, 자본","전략, 마케팅, 운영"],
+a:0,
+e:"데이터 거버넌스는 원칙(Principle), 조직(Organization), 프로세스(Process)의 3요소로 구성됩니다. 데이터의 관리 정책·기준을 세우고, 담당 조직과 관리 절차를 정립합니다."},
+
+{s:2,topic:"분석 준비도",freq:"제47회 출제 · 빈출",
+q:"기업의 분석 준비도(Readiness)를 진단하는 6가지 영역에 해당하지 않는 것은?",
+c:["분석 업무 파악","분석 인력 및 조직","분석 프로젝트 예산 규모","IT 인프라"],
+a:2,
+e:"분석 준비도 6영역은 분석 업무 파악, 인력·조직, 분석 기법, 분석 데이터, 분석 문화, IT 인프라입니다. 예산 규모는 별도의 계획 수립 요소입니다."},
+
+// ===== 3과목 데이터 분석 (21~50) =====
+{s:3,topic:"자료의 척도",freq:"제47회 출제 · 빈출",
+q:"절대적 기준점 0이 존재하여 사칙연산(비율 계산)이 모두 가능한 척도는?",
+c:["명목척도","순서척도","구간척도","비율척도"],
+a:3,
+e:"비율척도(무게·길이·나이 등)는 절대적 0점이 있어 비율 계산이 가능합니다. 구간척도(온도 등)는 등간격이지만 절대적 0이 없습니다."},
+
+{s:3,topic:"탐색적 데이터 분석",freq:"제47회 출제",
+q:"탐색적 데이터 분석(EDA)에 대한 설명으로 가장 적절하지 않은 것은?",
+c:["시각화와 요약통계량을 활용해 데이터의 특징과 구조를 파악한다.","본격적인 모델링 이전 단계에서 수행한다.","데이터의 이상값이나 결측값 존재 여부를 확인한다.","확정된 모델의 재현성을 검증하는 것이 EDA의 핵심 목적이다."],
+a:3,
+e:"EDA는 분석 초기에 데이터를 다각도로 관찰·탐색하는 활동입니다. 모델 재현성 검증은 모델링 이후 단계의 활동입니다."},
+
+{s:3,topic:"사분위수와 이상값",freq:"제47회 출제 · 매회 빈출",
+q:"어떤 자료의 제1사분위수(Q1)가 40, 제3사분위수(Q3)가 80일 때, 사분위수 범위(IQR) 방법으로 판단한 이상값의 기준으로 옳은 것은?",
+c:["20 미만 또는 100 초과","-20 미만 또는 140 초과","0 미만 또는 120 초과","40 미만 또는 80 초과"],
+a:1,
+e:"IQR=80-40=40. 하한=Q1-1.5×IQR=40-60=-20, 상한=Q3+1.5×IQR=80+60=140. 따라서 -20 미만 또는 140 초과가 이상값입니다."},
+
+{s:3,topic:"가설검정의 오류",freq:"제47회 출제 · 빈출",
+q:"가설검정에서 제1종 오류에 대한 설명으로 옳은 것은?",
+c:["귀무가설이 거짓인데 이를 채택하는 오류이다.","귀무가설이 참인데 이를 기각하는 오류이다.","대립가설이 참인데 이를 기각하는 오류이다.","표본의 크기가 커질수록 반드시 증가하는 오류이다."],
+a:1,
+e:"제1종 오류(α)는 참인 귀무가설을 기각하는 오류이며, 유의수준은 제1종 오류를 허용하는 최대 확률입니다. 거짓인 귀무가설을 채택하는 것은 제2종 오류(β)입니다."},
+
+{s:3,topic:"표본오차",freq:"제47회 출제",
+q:"표본조사에 대한 설명으로 가장 적절하지 않은 것은?",
+c:["표본오차는 모집단의 일부인 표본에서 모집단 전체의 특성을 추정하기 때문에 발생한다.","표본의 크기를 늘리면 표본오차는 일반적으로 줄어든다.","비표본오차는 조사 과정의 실수, 응답 오류 등에서 발생한다.","표본 추출 방법을 정교하게 하면 비표본오차를 완전히 제거할 수 있다."],
+a:3,
+e:"비표본오차는 측정 오류·무응답·입력 실수 등에서 비롯되므로 표본 추출 방법으로는 제거할 수 없습니다."},
+
+{s:3,topic:"왜도와 대표값 위치",freq:"제47회 출제 · 빈출",
+q:"오른쪽으로 긴 꼬리를 갖는(왜도가 양수인) 분포에서 최빈값, 중앙값, 평균의 크기 관계로 옳은 것은?",
+c:["평균 < 중앙값 < 최빈값","최빈값 < 중앙값 < 평균","중앙값 < 최빈값 < 평균","평균 = 중앙값 = 최빈값"],
+a:1,
+e:"양의 왜도(오른쪽 꼬리)에서는 꼬리 쪽 큰 값들이 평균을 끌어올려 최빈값 < 중앙값 < 평균 순이 됩니다. 음의 왜도에서는 반대입니다."},
+
+{s:3,topic:"표본 추출 방법",freq:"제47회 출제 · 빈출",
+q:"첫 번째 표본만 무작위로 선정한 뒤, 그 이후에는 일정한 간격으로 표본을 추출하는 방법은?",
+c:["단순무작위추출","층화추출","계통추출","집락추출"],
+a:2,
+e:"계통추출은 첫 표본을 임의로 정하고 이후 K개 간격마다 추출합니다. 층화추출은 이질적인 층으로 나눠 각 층에서 추출, 집락추출은 집락 단위로 전체를 추출합니다."},
+
+{s:3,topic:"p-value",freq:"제47회 출제 · 매회 빈출",
+q:"유의확률(p-value)에 대한 설명으로 가장 적절한 것은?",
+c:["p-value가 유의수준보다 작으면 귀무가설을 기각한다.","p-value가 클수록 귀무가설을 기각할 근거가 강해진다.","p-value는 대립가설이 참일 확률 그 자체를 의미한다.","p-value는 항상 유의수준과 같은 값을 가진다."],
+a:0,
+e:"p-value는 귀무가설이 참일 때 관측 결과 이상으로 극단적인 값이 나올 확률로, 유의수준(α)보다 작으면 귀무가설을 기각합니다."},
+
+{s:3,topic:"상자그림 해석",freq:"제47회 출제",
+q:"상자그림(Box Plot)에서 위쪽 수염(whisker)이 아래쪽 수염보다 눈에 띄게 길다면 분포에 대해 추론할 수 있는 것은?",
+c:["분포가 왼쪽으로 긴 꼬리를 갖는다(음의 왜도).","분포가 오른쪽으로 긴 꼬리를 갖는다(양의 왜도).","분포가 완전한 좌우 대칭이다.","자료에 결측값이 많다."],
+a:1,
+e:"위쪽(큰 값 방향) 수염이 길면 큰 값 쪽으로 꼬리가 길게 뻗은 양의 왜도 분포로 추론할 수 있습니다."},
+
+{s:3,topic:"주성분분석",freq:"제47회 출제 · 빈출",
+q:"주성분분석(PCA)에 대한 설명으로 가장 적절하지 않은 것은?",
+c:["서로 상관관계가 있는 변수들을 소수의 주성분으로 축약하는 차원축소 기법이다.","제1주성분은 원 데이터의 분산을 가장 많이 설명하는 방향으로 결정된다.","각 주성분들은 서로 직교하며 상관관계가 없다.","주성분들 간에는 강한 양의 상관관계가 존재한다."],
+a:3,
+e:"주성분들은 서로 직교(orthogonal)하도록 만들어지므로 상관관계가 0입니다."},
+
+{s:3,topic:"회귀분석 분산 추정",freq:"제47회 출제",
+q:"관측치가 22개인 단순선형회귀분석에서 오차제곱합(SSE)이 400일 때, 오차항 분산의 추정량(MSE)은?",
+c:["10","20","18.2","40"],
+a:1,
+e:"단순회귀의 오차 자유도는 n-2=20이므로 MSE=SSE/(n-2)=400/20=20입니다."},
+
+{s:3,topic:"다중공선성 해결",freq:"제47회 출제 · 빈출",
+q:"다중공선성 문제를 완화하기 위한 방법으로 가장 거리가 먼 것은?",
+c:["릿지 회귀(L2 규제) 적용","라쏘 회귀(L1 규제) 적용","상관이 높은 변수 제거 또는 주성분분석 활용","로지스틱 회귀로 모형 변경"],
+a:3,
+e:"로지스틱 회귀는 종속변수가 범주형일 때 쓰는 모형일 뿐 다중공선성 해결책이 아닙니다. 규제 회귀(릿지·라쏘·엘라스틱넷), 변수 제거, PCA 등이 해결 방법입니다."},
+
+{s:3,topic:"다중공선성과 VIF",freq:"제47회 출제 · 빈출",
+q:"다중공선성에 대한 설명으로 가장 적절하지 않은 것은?",
+c:["독립변수들 간에 강한 상관관계가 존재할 때 발생한다.","다중공선성이 존재하면 회귀계수 추정량의 분산이 커져 추정이 불안정해진다.","일반적으로 VIF(분산팽창계수)가 10을 넘으면 다중공선성을 의심한다.","다중공선성은 종속변수와 오차항 간의 상관 때문에 발생한다."],
+a:3,
+e:"다중공선성은 독립변수들 사이의 강한 상관 때문에 발생하는 문제입니다. 종속변수와 오차항의 관계와는 무관합니다."},
+
+{s:3,topic:"더미변수 해석",freq:"제47회 출제",
+q:"졸업률(%)을 종속변수로 한 회귀분석에서 사립학교 여부를 나타내는 더미변수(사립=1, 공립=0)의 회귀계수가 +6.8로 유의하게 추정되었다. 이에 대한 해석으로 옳은 것은?",
+c:["사립학교가 공립학교보다 졸업률이 평균 6.8%p 높다.","공립학교가 사립학교보다 졸업률이 평균 6.8%p 높다.","사립학교와 공립학교의 졸업률에는 차이가 없다.","사립학교의 졸업률은 항상 정확히 6.8%이다."],
+a:0,
+e:"더미변수의 계수는 기준 범주(공립=0) 대비 해당 범주(사립=1)의 종속변수 평균 차이를 의미합니다. 계수가 양수이므로 사립학교의 졸업률이 6.8%p 높습니다."},
+
+{s:3,topic:"회귀분석 변수 처리",freq:"제47회 출제",
+q:"다중회귀분석 결과 해석에 대한 설명으로 가장 적절하지 않은 것은?",
+c:["결정계수는 모형이 종속변수의 변동을 설명하는 비율을 나타낸다.","회귀계수의 p-value가 유의수준보다 작으면 해당 변수는 통계적으로 유의하다.","통계적으로 유의하지 않은 변수는 추가적인 검토 없이 무조건 즉시 제거해야 한다.","F 통계량은 회귀모형 전체의 유의성을 검정한다."],
+a:2,
+e:"유의하지 않은 변수라도 이론적 중요성, 교호작용, 다른 변수와의 관계 등을 검토해야 하며, 추가 분석 없이 기계적으로 제거해서는 안 됩니다."},
+
+{s:3,topic:"백색잡음",freq:"제47회 출제",
+q:"시계열 분석에서 백색잡음(White Noise)에 대한 설명으로 가장 적절하지 않은 것은?",
+c:["평균이 0으로 일정하다.","분산이 일정하다.","서로 다른 시점의 값들 간에 자기상관이 없다.","대표적인 비정상 시계열이다."],
+a:3,
+e:"백색잡음은 평균 0, 일정한 분산, 자기상관 0을 만족하는 대표적인 '정상' 시계열입니다."},
+
+{s:3,topic:"스피어만 상관계수",freq:"제47회 출제",
+q:"두 변수 간에 단조 증가하지만 선형은 아닌 관계가 존재할 때, 이 관계의 강도를 측정하기에 가장 적절한 지표는?",
+c:["피어슨 상관계수","스피어만 순위상관계수","분산팽창계수(VIF)","결정계수"],
+a:1,
+e:"스피어만 상관계수는 순위(rank)를 기반으로 하므로 선형이 아니어도 단조 관계라면 측정할 수 있습니다. 피어슨은 선형 관계 전용입니다."},
+
+{s:3,topic:"ARIMA 모형",freq:"제47회 출제 · 빈출",
+q:"비정상 시계열 자료에 ARIMA 모형을 적용하는 절차로 가장 적절한 것은?",
+c:["비정상 시계열 그대로 AR 차수와 MA 차수를 먼저 결정한다.","차분(differencing)을 통해 정상 시계열로 변환한 후 AR·MA 차수를 결정한다.","시계열을 무작위로 섞은 뒤 모형을 적합한다.","종속변수를 로지스틱 변환한 후 회귀분석을 수행한다."],
+a:1,
+e:"ARIMA의 I(Integrated)가 차분을 의미합니다. 비정상 시계열은 차분으로 정상화한 뒤 ACF·PACF로 AR·MA 차수를 결정합니다."},
+
+{s:3,topic:"로지스틱 회귀 해석",freq:"제47회 출제",
+q:"로지스틱 회귀분석 결과에서 어떤 독립변수의 회귀계수 p-value가 매우 작게 나타났다. 이에 대한 해석으로 가장 적절한 것은?",
+c:["해당 변수는 종속변수와 통계적으로 유의미한 관계가 있다.","해당 변수는 종속변수와 완전히 독립이다.","해당 변수는 모형에서 즉시 제거해야 한다.","해당 변수의 오즈비는 반드시 1이다."],
+a:0,
+e:"p-value가 작다는 것은 '계수=0'이라는 귀무가설을 기각한다는 뜻이므로, 해당 변수가 종속변수와 유의미한 관계를 갖는다고 해석합니다."},
+
+{s:3,topic:"시계열 정상성",freq:"제47회 출제 · 빈출",
+q:"시계열의 정상성(Stationarity)에 대한 설명으로 가장 적절한 것은?",
+c:["시간이 흐르면 평균이 꾸준히 증가해야 한다.","평균과 분산이 시점에 관계없이 일정하고, 공분산은 시차에만 의존해야 한다.","자기상관계수가 시간에 따라 체계적으로 커져야 한다.","분산이 시간에 따라 지속적으로 증가해야 한다."],
+a:1,
+e:"정상성의 조건: 평균 일정, 분산 일정, 공분산은 시차(lag)에만 의존(시점 자체와 무관)입니다."},
+
+{s:3,topic:"소프트맥스 함수",freq:"제47회 출제",
+q:"인공신경망의 출력층에서 다중 클래스 분류를 위해 각 클래스에 속할 확률을 출력하며, 모든 출력값의 합이 1이 되도록 하는 활성화 함수는?",
+c:["ReLU 함수","시그모이드 함수","소프트맥스 함수","계단 함수"],
+a:2,
+e:"소프트맥스는 여러 클래스에 대한 확률 분포(합=1)를 출력하는 다중분류용 활성화 함수입니다. 시그모이드는 이진분류에서 0~1 확률 하나를 출력합니다."},
+
+{s:3,topic:"앙상블 분석",freq:"제47회 출제 · 빈출",
+q:"앙상블 기법에 대한 설명으로 가장 적절하지 않은 것은?",
+c:["배깅은 부트스트랩 표본으로 여러 모델을 병렬 학습시켜 투표·평균으로 결합한다.","부스팅은 이전 모델이 잘못 분류한 데이터에 더 높은 가중치를 주며 순차적으로 학습한다.","랜덤포레스트는 배깅에 변수의 무작위 선택을 추가한 기법이다.","부스팅은 모든 모델을 완전히 독립적으로 동시에 학습시키는 병렬 기법이다."],
+a:3,
+e:"부스팅은 이전 모델의 오류를 반영해 순차적으로 학습하는 기법입니다. 병렬·독립 학습은 배깅의 특징입니다."},
+
+{s:3,topic:"시그모이드 함수",freq:"제47회 출제",
+q:"출력값을 0과 1 사이의 값으로 변환하여 S자 형태의 곡선을 그리며, 로지스틱 회귀와 이진분류 신경망에서 활용되는 함수는?",
+c:["시그모이드 함수","소프트맥스 함수","ReLU 함수","항등 함수"],
+a:0,
+e:"시그모이드 함수는 실수 입력을 0~1 사이 값으로 압축하는 S자 곡선 함수로, 이진분류의 확률 출력에 사용됩니다."},
+
+{s:3,topic:"혼동행렬 민감도",freq:"제47회 출제 · 매회 빈출",
+q:"어떤 분류 모형의 혼동행렬이 TP=40, FN=10, FP=20, TN=30일 때 민감도(Sensitivity)는?",
+c:["0.5","0.6","0.67","0.8"],
+a:3,
+e:"민감도 = TP/(TP+FN) = 40/(40+10) = 0.8. 실제 양성 중 모형이 양성으로 맞힌 비율입니다."},
+
+{s:3,topic:"혼합분포 군집",freq:"제47회 출제",
+q:"데이터가 여러 개의 확률분포(주로 정규분포)의 혼합으로 생성되었다고 가정하고, E단계와 M단계를 반복하며 모수를 추정하는 군집 방법은?",
+c:["K-평균 군집","계층적 군집","혼합분포 군집(EM 알고리즘)","DBSCAN"],
+a:2,
+e:"혼합분포 군집은 EM 알고리즘(E단계: 소속 확률 계산, M단계: 모수 갱신)을 반복해 각 데이터의 군집 소속을 확률적으로 추정합니다."},
+
+{s:3,topic:"엘보 메소드",freq:"제47회 출제",
+q:"K-평균 군집에서 군집 수 K를 늘려가며 군집 내 제곱합(WSS)을 그렸을 때, 감소폭이 급격하다가 완만해지는 꺾이는 지점으로 최적의 K를 결정하는 방법은?",
+c:["엘보(Elbow) 방법","와드(Ward) 방법","덴드로그램 방법","경사하강법"],
+a:0,
+e:"엘보 방법은 WSS 감소 곡선에서 팔꿈치처럼 꺾이는 지점을 최적 군집 수로 선택합니다."},
+
+{s:3,topic:"SOM",freq:"제47회 출제 · 빈출",
+q:"자기조직화지도(SOM)에 대한 설명으로 가장 적절한 것은?",
+c:["경쟁학습 기반으로, 입력과 가장 유사한 노드가 승자가 되어 가중치가 갱신된다.","밀도 기반 군집 방법으로 임의 형태의 군집을 발견한다.","반드시 군집 수 K를 사전에 지정할 필요 없이 덴드로그램을 그린다.","오차 역전파를 통해 은닉층의 가중치를 학습한다."],
+a:0,
+e:"SOM은 입력층-경쟁층 구조의 비지도 신경망으로, 입력과 가장 가까운 노드(BMU)를 승자로 정해 그 주변의 가중치를 갱신하는 경쟁학습을 사용합니다. 역전파는 사용하지 않습니다."},
+
+{s:3,topic:"K-평균 군집 특성",freq:"제47회 출제 · 빈출",
+q:"K-평균 군집분석에 대한 설명으로 가장 적절하지 않은 것은?",
+c:["군집의 수 K를 분석 전에 미리 정해야 한다.","초기 중심점(seed)의 선택이 최종 군집 결과에 영향을 줄 수 있다.","이상값(outlier)에 민감하게 반응한다.","초기값과 무관하게 항상 동일한 전역 최적해를 보장한다."],
+a:3,
+e:"K-평균은 초기 중심점에 따라 지역 최적해에 수렴할 수 있어 결과가 달라질 수 있습니다. 전역 최적해는 보장되지 않습니다."},
+
+{s:3,topic:"와드 연결법",freq:"제47회 출제",
+q:"계층적 군집분석에서 군집 병합 시 군집 내 오차제곱합(SSE)의 증가량이 최소가 되도록 두 군집을 병합하는 연결 방법은?",
+c:["단일연결법","완전연결법","평균연결법","와드연결법"],
+a:3,
+e:"와드(Ward)연결법은 병합으로 인한 군집 내 제곱오차합의 증가를 최소화하는 방향으로 군집을 병합합니다."},
+
+{s:3,topic:"연관분석 지지도 계산",freq:"제47회 출제 · 매회 빈출",
+q:"전체 100건의 거래 중 우유를 포함한 거래가 50건, 커피를 포함한 거래가 40건, 우유와 커피를 모두 포함한 거래가 30건일 때, '우유 → 커피' 규칙의 지지도는?",
+c:["0.3","0.5","0.6","0.75"],
+a:0,
+e:"지지도 = P(우유∩커피) = 30/100 = 0.3. 참고로 신뢰도는 30/50=0.6, 향상도는 0.6/0.4=1.5입니다."},
+];
+
+
+const SUBJECT_NAMES = {1:"1과목 데이터 이해", 2:"2과목 데이터 분석 기획", 3:"3과목 데이터 분석"};
+const RECORD_KEY = "adsp_mock_exam_record_v1";
+const TOTAL_SEC = 90 * 60;
+
+let activeSet = [];        // 현재 시험 문제 (전체 or 오답/과목 subset)
+let isSubsetMode = false;
+let sessionMode = 'exam';  // 'exam' | 'wrong' | 'subject'
+let answers = [];          // 선택 인덱스 or null
+let flags = [];
+let cur = 0;
+let remain = TOTAL_SEC;
+let timerId = null;
+let lastWrongIdx = [];     // 전체 기준 오답 인덱스(원본 QUESTIONS 인덱스)
+
+/* ---------- 시작 ---------- */
+function subjectIndices(s){
+  const list = [];
+  QUESTIONS.forEach((q,i)=>{ if(q.s===s) list.push(i); });
+  return list;
+}
+
+function startSubjectPractice(s){
+  startExam(subjectIndices(s), 'subject');
+}
+
+function startExam(subset, mode){
+  isSubsetMode = Array.isArray(subset);
+  sessionMode = mode || (isSubsetMode ? 'wrong' : 'exam');
+  activeSet = isSubsetMode
+    ? subset.map(i => ({...QUESTIONS[i], _orig:i}))
+    : shuffled(QUESTIONS.map((q,i)=>({...q,_orig:i})));
+  answers = new Array(activeSet.length).fill(null);
+  flags = new Array(activeSet.length).fill(false);
+  cur = 0;
+  remain = isSubsetMode ? Math.max(300, activeSet.length * 108) : TOTAL_SEC;
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("instant").classList.add("hidden");
+  document.getElementById("instantResult").classList.add("hidden");
+  document.getElementById("exam").classList.remove("hidden");
+  const label = document.getElementById("examModeLabel");
+  if(sessionMode === 'subject'){
+    label.textContent = SUBJECT_NAMES[activeSet[0].s] + " 연습";
+    label.style.display = "";
+  } else if(sessionMode === 'wrong'){
+    label.textContent = "오답 재풀이";
+    label.style.display = "";
+  } else {
+    label.style.display = "none";
+  }
+  buildOmr();
+  render();
+  clearInterval(timerId);
+  timerId = setInterval(tick, 1000);
+  tick();
+  window.scrollTo(0,0);
+}
+
+function tick(){
+  remain--;
+  if(remain < 0){ submitExam(true); return; }
+  const m = Math.floor(remain/60), s = remain%60;
+  const t = document.getElementById("timer");
+  t.textContent = String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  t.classList.toggle("low", remain < 300);
+}
+
+/* ---------- 렌더링 ---------- */
+function buildOmr(){
+  const g = document.getElementById("omrGrid");
+  g.innerHTML = "";
+  activeSet.forEach((_,i)=>{
+    const c = document.createElement("button");
+    c.className = "omr-cell";
+    c.textContent = i+1;
+    c.addEventListener("click", ()=>{ cur=i; render(); });
+    g.appendChild(c);
+  });
+}
+
+function render(){
+  const q = activeSet[cur];
+  const sub = document.getElementById("qSubject");
+  sub.textContent = SUBJECT_NAMES[q.s];
+  sub.className = "q-subject s"+q.s;
+  document.getElementById("qText").innerHTML = '<span class="no">'+(cur+1)+'.</span>'+esc(q.q);
+  const box = document.getElementById("choices");
+  box.innerHTML = "";
+  q.c.forEach((choice,i)=>{
+    const d = document.createElement("div");
+    d.className = "choice"+(answers[cur]===i?" sel":"");
+    d.innerHTML = '<span class="mark">'+(i+1)+'</span><span>'+esc(choice)+'</span>';
+    d.addEventListener("click", ()=>{
+      answers[cur] = (answers[cur]===i) ? null : i;
+      render();
+    });
+    box.appendChild(d);
+  });
+  // OMR 상태
+  const cells = document.querySelectorAll(".omr-cell");
+  cells.forEach((c,i)=>{
+    c.classList.toggle("done", answers[i]!==null);
+    c.classList.toggle("cur", i===cur);
+    c.classList.toggle("flag", flags[i]);
+  });
+  document.getElementById("answeredInfo").textContent =
+    answers.filter(a=>a!==null).length + " / " + activeSet.length + " 응답";
+  document.getElementById("flagBtn").textContent = flags[cur] ? "🚩 표시 해제" : "🚩 나중에 다시 보기";
+  document.getElementById("submitWarn").classList.remove("show");
+}
+
+function move(d){
+  cur = Math.min(activeSet.length-1, Math.max(0, cur+d));
+  render();
+}
+function toggleFlag(){ flags[cur]=!flags[cur]; render(); }
+
+/* ---------- 제출/채점 ---------- */
+function trySubmit(){
+  const un = answers.map((a,i)=>a===null?i+1:null).filter(x=>x!==null);
+  const warn = document.getElementById("submitWarn");
+  if(un.length && !warn.classList.contains("show")){
+    warn.textContent = "아직 응답하지 않은 문항이 "+un.length+"개 있습니다 ("+un.slice(0,10).join(", ")+(un.length>10?" ...":"")+"). 그래도 제출하려면 '답안 제출'을 한 번 더 누르세요.";
+    warn.classList.add("show");
+    return;
+  }
+  submitExam(false);
+}
+
+function submitExam(timeout){
+  clearInterval(timerId);
+  document.getElementById("exam").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+  window.scrollTo(0,0);
+
+  const per = {1:{ok:0,tot:0},2:{ok:0,tot:0},3:{ok:0,tot:0}};
+  let correct = 0;
+  activeSet.forEach((q,i)=>{
+    per[q.s].tot++;
+    if(answers[i]===q.a){ correct++; per[q.s].ok++; }
+  });
+  const score = Math.round(correct / activeSet.length * 100);
+
+  // 과락 판정 (전체 모드에서만)
+  let cutFail = [];
+  if(!isSubsetMode){
+    [1,2,3].forEach(s=>{
+      if(per[s].ok / per[s].tot < 0.4) cutFail.push(SUBJECT_NAMES[s]);
+    });
+  }
+  const pass = !isSubsetMode && score >= 60 && cutFail.length === 0;
+
+  const banner = document.getElementById("resultBanner");
+  const title = document.getElementById("resultTitle");
+  const desc = document.getElementById("resultDesc");
+  document.getElementById("resultScore").textContent = score + "점";
+
+  if(isSubsetMode){
+    banner.className = "result-banner " + (score>=60?"pass":"fail");
+    title.textContent = sessionMode === 'subject' ? (SUBJECT_NAMES[activeSet[0].s] + " 연습 결과") : "오답 재풀이 결과";
+    desc.textContent = activeSet.length+"문제 중 "+correct+"문제 정답" + (timeout?" · 시간 초과로 자동 제출됨":"");
+  } else if(pass){
+    banner.className = "result-banner pass";
+    title.textContent = "합격권입니다! 🎉";
+    desc.textContent = "50문항 중 "+correct+"문항 정답 · 총점 60점 이상, 전 과목 과락 없음" + (timeout?" · 시간 초과로 자동 제출됨":"");
+  } else {
+    banner.className = "result-banner fail";
+    title.textContent = "아직 합격 기준 미달입니다";
+    let reason = [];
+    if(score < 60) reason.push("총점 60점 미만");
+    if(cutFail.length) reason.push("과락: "+cutFail.join(", "));
+    desc.textContent = "50문항 중 "+correct+"문항 정답 · " + reason.join(" · ") + (timeout?" · 시간 초과로 자동 제출됨":"");
+  }
+
+  // 과목별 카드
+  const sg = document.getElementById("subjGrid");
+  sg.innerHTML = "";
+  [1,2,3].forEach(s=>{
+    if(per[s].tot===0) return;
+    const pct = Math.round(per[s].ok/per[s].tot*100);
+    const isCut = !isSubsetMode && pct < 40;
+    const colors = {1:"#60a5fa",2:"#34d399",3:"#a78bfa"};
+    const d = document.createElement("div");
+    d.className = "subj"+(isCut?" cut":"");
+    d.innerHTML = "<h4>"+SUBJECT_NAMES[s]+"</h4>"
+      + '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+(isCut?"#f87171":colors[s])+'"></div></div>'
+      + '<span class="pct">'+per[s].ok+' / '+per[s].tot+' ('+pct+'%)</span>'
+      + (isCut ? '<span class="cut-tag">과락</span>' : '');
+    sg.appendChild(d);
+  });
+
+  // 오답 인덱스 (원본 기준)
+  lastWrongIdx = [];
+  activeSet.forEach((q,i)=>{ if(answers[i]!==q.a) lastWrongIdx.push(q._orig); });
+  document.getElementById("retryWrongBtn").style.display = lastWrongIdx.length ? "" : "none";
+
+  // 리뷰 목록
+  buildReview();
+
+  // 기록 저장 (전체 모드만)
+  if(!isSubsetMode){
+    try{
+      const rec = JSON.parse(localStorage.getItem(RECORD_KEY)||"{}");
+      rec.last = {score, correct, date:new Date().toISOString().slice(0,10), pass};
+      if(!rec.best || score > rec.best.score) rec.best = rec.last;
+      localStorage.setItem(RECORD_KEY, JSON.stringify(rec));
+    }catch(e){}
+  }
+}
+
+function buildReview(){
+  const list = document.getElementById("reviewList");
+  list.innerHTML = "";
+  activeSet.forEach((q,i)=>{
+    const my = answers[i];
+    const isCorrect = my===q.a;
+    const d = document.createElement("div");
+    d.className = "review-item "+(isCorrect?"correct":"wrong");
+    d.dataset.state = isCorrect?"correct":"wrong";
+    d.innerHTML =
+      '<span class="q-subject s'+q.s+'">'+SUBJECT_NAMES[q.s]+'</span>'
+      + '<span class="freq-tag">'+esc(q.freq)+'</span>'
+      + '<div class="review-q">'+(i+1)+'. '+esc(q.q)+'</div>'
+      + '<div class="review-a'+(isCorrect?'':' your-wrong')+'">내 답: <b>'+(my===null?'무응답':(my+1)+'번 · '+esc(q.c[my]))+'</b></div>'
+      + '<div class="review-a">정답: <b>'+(q.a+1)+'번 · '+esc(q.c[q.a])+'</b></div>'
+      + '<div class="review-exp"><b>해설</b> · '+esc(q.e)+'</div>';
+    list.appendChild(d);
+  });
+}
+
+function filterReview(mode){
+  document.querySelectorAll(".review-item").forEach(el=>{
+    el.style.display = (mode==="all" || el.dataset.state==="wrong") ? "" : "none";
+  });
+}
+
+function retryWrong(){
+  if(!lastWrongIdx.length) return;
+  startExam(lastWrongIdx, 'wrong');
+}
+
+/* ---------- 즉시 확인 모드 ---------- */
+let instantSet = [];
+let instantIdx = 0;
+let instantAnswered = false;
+let instantCorrectCount = 0;
+let instantWrongOrig = [];
+let instantLog = [];       // {q, my, correct}
+
+function shuffled(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function startInstantModeFromIntro(){
+  const scope = document.querySelector('input[name="instantScope"]:checked').value;
+  const indices = scope === 'all' ? QUESTIONS.map((_,i)=>i) : subjectIndices(Number(scope));
+  startInstantMode(indices);
+}
+
+function startInstantMode(indices){
+  instantSet = shuffled(indices).map(i => ({...QUESTIONS[i], _orig:i}));
+  instantIdx = 0;
+  instantCorrectCount = 0;
+  instantWrongOrig = [];
+  instantLog = [];
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("exam").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("instantResult").classList.add("hidden");
+  document.getElementById("instant").classList.remove("hidden");
+  renderInstant();
+  window.scrollTo(0,0);
+}
+
+function renderInstant(){
+  const q = instantSet[instantIdx];
+  instantAnswered = false;
+  document.getElementById("instantProgress").textContent = (instantIdx+1)+" / "+instantSet.length+"문항";
+  document.getElementById("instantScoreBadge").textContent = "정답 "+instantCorrectCount+" / "+instantIdx;
+  const sub = document.getElementById("instantSubject");
+  sub.textContent = SUBJECT_NAMES[q.s];
+  sub.className = "q-subject s"+q.s;
+  document.getElementById("instantQText").innerHTML = '<span class="no">'+(instantIdx+1)+'.</span>'+esc(q.q);
+  const box = document.getElementById("instantChoices");
+  box.innerHTML = "";
+  q.c.forEach((choice,i)=>{
+    const d = document.createElement("div");
+    d.className = "choice";
+    d.innerHTML = '<span class="mark">'+(i+1)+'</span><span>'+esc(choice)+'</span>';
+    d.addEventListener("click", ()=> selectInstant(i));
+    box.appendChild(d);
+  });
+  const fb = document.getElementById("instantFeedback");
+  fb.classList.add("hidden");
+  fb.innerHTML = "";
+  const nextBtn = document.getElementById("instantNextBtn");
+  nextBtn.disabled = true;
+  nextBtn.textContent = (instantIdx === instantSet.length-1) ? "결과 보기" : "다음 문제 →";
+}
+
+function selectInstant(i){
+  if(instantAnswered) return;
+  instantAnswered = true;
+  const q = instantSet[instantIdx];
+  const isCorrect = i === q.a;
+  if(isCorrect) instantCorrectCount++;
+  else instantWrongOrig.push(q._orig);
+  instantLog.push({q, my:i, correct:isCorrect});
+  document.querySelectorAll("#instantChoices .choice").forEach((c,idx)=>{
+    c.classList.add("disabled");
+    if(idx===q.a) c.classList.add("correct");
+    else if(idx===i) c.classList.add("wrong");
+  });
+  const fb = document.getElementById("instantFeedback");
+  fb.classList.remove("hidden");
+  fb.innerHTML = "<b>"+(isCorrect?"정답입니다! 🎉":"오답입니다.")+"</b> · 정답: "+(q.a+1)+"번 · "+esc(q.c[q.a])+"<br>"+esc(q.e);
+  document.getElementById("instantScoreBadge").textContent = "정답 "+instantCorrectCount+" / "+(instantIdx+1);
+  document.getElementById("instantNextBtn").disabled = false;
+}
+
+function nextInstant(){
+  if(!instantAnswered) return;
+  if(instantIdx < instantSet.length-1){
+    instantIdx++;
+    renderInstant();
+  } else {
+    finishInstant();
+  }
+}
+
+function endInstant(){
+  document.getElementById("instant").classList.add("hidden");
+  document.getElementById("intro").classList.remove("hidden");
+}
+
+function finishInstant(){
+  document.getElementById("instant").classList.add("hidden");
+  document.getElementById("instantResult").classList.remove("hidden");
+  const total = instantSet.length;
+  const pct = total ? Math.round(instantCorrectCount/total*100) : 0;
+  document.getElementById("instantResultBanner").className = "result-banner " + (pct>=60?"pass":"fail");
+  document.getElementById("instantResultScore").textContent = pct+"점 ("+instantCorrectCount+" / "+total+")";
+  document.getElementById("instantResultDesc").textContent = "즉시 확인 모드 · "+total+"문제 중 "+instantCorrectCount+"문제 정답";
+  document.getElementById("instantRetryWrongBtn").style.display = instantWrongOrig.length ? "" : "none";
+  const list = document.getElementById("instantReviewList");
+  list.innerHTML = "";
+  instantLog.forEach((entry,idx)=>{
+    const {q, my, correct} = entry;
+    const d = document.createElement("div");
+    d.className = "review-item "+(correct?"correct":"wrong");
+    d.innerHTML =
+      '<span class="q-subject s'+q.s+'">'+SUBJECT_NAMES[q.s]+'</span>'
+      + '<span class="freq-tag">'+esc(q.freq)+'</span>'
+      + '<div class="review-q">'+(idx+1)+'. '+esc(q.q)+'</div>'
+      + '<div class="review-a'+(correct?'':' your-wrong')+'">내 답: <b>'+(my+1)+'번 · '+esc(q.c[my])+'</b></div>'
+      + '<div class="review-a">정답: <b>'+(q.a+1)+'번 · '+esc(q.c[q.a])+'</b></div>'
+      + '<div class="review-exp"><b>해설</b> · '+esc(q.e)+'</div>';
+    list.appendChild(d);
+  });
+  window.scrollTo(0,0);
+}
+
+function retryInstantWrong(){
+  if(!instantWrongOrig.length) return;
+  startInstantMode(instantWrongOrig);
+}
+
+/* ---------- 유틸 ---------- */
+function esc(v){
+  return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+
+/* ---------- 초기 기록 표시 ---------- */
+(function(){
+  try{
+    const rec = JSON.parse(localStorage.getItem(RECORD_KEY)||"{}");
+    if(rec.last){
+      document.getElementById("lastRecord").innerHTML =
+        "최근 응시: "+rec.last.date+" · "+rec.last.score+"점 ("+(rec.last.pass?"합격권":"기준 미달")+")"
+        + (rec.best ? " &nbsp;|&nbsp; 최고 점수: "+rec.best.score+"점" : "");
+    }
+  }catch(e){}
+})();
+
+/* 키보드 단축키: ←/→ 이동, 1~4 선택 */
+document.addEventListener("keydown", function(ev){
+  if(!document.getElementById("exam").classList.contains("hidden")){
+    if(ev.key==="ArrowLeft") move(-1);
+    else if(ev.key==="ArrowRight") move(1);
+    else if(["1","2","3","4"].includes(ev.key)){
+      const i = Number(ev.key)-1;
+      answers[cur] = (answers[cur]===i)?null:i;
+      render();
+    }
+    return;
+  }
+  if(!document.getElementById("instant").classList.contains("hidden")){
+    if(["1","2","3","4"].includes(ev.key)){
+      if(!instantAnswered) selectInstant(Number(ev.key)-1);
+    } else if(ev.key==="Enter" || ev.key==="ArrowRight"){
+      if(!document.getElementById("instantNextBtn").disabled) nextInstant();
+    }
+  }
+});
+</script>
+</body>
+</html>

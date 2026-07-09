@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ADsP 실전 모의고사 반복학습</title>
+<style>
+  :root {
+    --bg:#f5f7fb; --card:#ffffff; --text:#172033; --muted:#687387; --primary:#4f46e5;
+    --primary2:#7c3aed; --good:#059669; --bad:#dc2626; --warn:#d97706; --line:#e5e7eb;
+    --chip:#eef2ff; --shadow:0 18px 40px rgba(15,23,42,.08);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:linear-gradient(135deg,#f8fafc,#eef2ff); color:var(--text); }
+  header { padding:28px 18px 18px; }
+  .wrap { max-width:1180px; margin:0 auto; }
+  .hero { background:linear-gradient(135deg,#312e81,#4f46e5 55%,#8b5cf6); color:white; border-radius:28px; padding:30px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .hero:after { content:''; position:absolute; right:-70px; top:-70px; width:240px; height:240px; border-radius:50%; background:rgba(255,255,255,.12); }
+  .hero h1 { margin:0 0 10px; font-size:clamp(26px,4vw,42px); letter-spacing:-.04em; }
+  .hero p { margin:4px 0; opacity:.92; line-height:1.65; }
+  .badges { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+  .badge { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.24); padding:8px 12px; border-radius:999px; font-size:14px; }
+  nav { position:sticky; top:0; z-index:10; backdrop-filter: blur(12px); background:rgba(245,247,251,.75); border-bottom:1px solid rgba(226,232,240,.8); }
+  .nav-inner { max-width:1180px; margin:0 auto; padding:12px 18px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+  .nav-buttons { display:flex; gap:8px; flex-wrap:wrap; }
+  button, select, input { font:inherit; }
+  button { border:0; border-radius:14px; padding:10px 14px; background:#e0e7ff; color:#312e81; cursor:pointer; font-weight:700; transition:.15s ease; }
+  button:hover { transform:translateY(-1px); box-shadow:0 8px 18px rgba(79,70,229,.15); }
+  button.primary { background:linear-gradient(135deg,var(--primary),var(--primary2)); color:white; }
+  button.ghost { background:white; border:1px solid var(--line); color:var(--text); }
+  button.danger { background:#fee2e2; color:#991b1b; }
+  button.good { background:#dcfce7; color:#166534; }
+  main { max-width:1180px; margin:0 auto; padding:18px; }
+  .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:16px; }
+  .card { background:rgba(255,255,255,.92); border:1px solid rgba(226,232,240,.95); border-radius:24px; padding:22px; box-shadow:var(--shadow); }
+  .span-4 { grid-column: span 4; } .span-5 { grid-column: span 5; } .span-7 { grid-column: span 7; } .span-8 { grid-column: span 8; } .span-12 { grid-column: span 12; }
+  @media (max-width:900px) { .span-4,.span-5,.span-7,.span-8 { grid-column:span 12; } }
+  h2 { margin:0 0 14px; letter-spacing:-.03em; } h3 { margin:0 0 10px; }
+  .muted { color:var(--muted); line-height:1.65; }
+  .stat-row { display:grid; grid-template-columns: repeat(4,1fr); gap:10px; }
+  .stat { background:#f8fafc; border:1px solid var(--line); border-radius:18px; padding:16px; }
+  .stat b { display:block; font-size:24px; margin-top:4px; }
+  @media (max-width:700px) { .stat-row { grid-template-columns:repeat(2,1fr); } }
+  .table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:16px; }
+  .table th,.table td { border-bottom:1px solid var(--line); padding:12px; text-align:left; }
+  .table th { background:#f8fafc; }
+  .pill { display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px; background:var(--chip); color:#3730a3; font-weight:700; font-size:13px; margin:3px 4px 3px 0; }
+  .hidden { display:none !important; }
+  .settings { display:grid; grid-template-columns: repeat(4,1fr); gap:12px; }
+  @media (max-width:900px) { .settings { grid-template-columns:1fr 1fr; } }
+  @media (max-width:560px) { .settings { grid-template-columns:1fr; } }
+  label { display:block; font-size:13px; color:var(--muted); font-weight:700; margin-bottom:6px; }
+  select, input[type='number'], input[type='text'] { width:100%; border:1px solid var(--line); border-radius:14px; padding:11px 12px; background:white; }
+  .question-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom:10px; }
+  .q-title { font-size:22px; line-height:1.55; letter-spacing:-.02em; margin:10px 0 18px; }
+  .choice { display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line); background:white; padding:14px; border-radius:16px; margin:10px 0; cursor:pointer; }
+  .choice:hover { border-color:#a5b4fc; background:#f8faff; }
+  .choice input { margin-top:4px; }
+  .choice.correct { border-color:#16a34a; background:#ecfdf5; }
+  .choice.wrong { border-color:#ef4444; background:#fef2f2; }
+  .explain { border-left:5px solid var(--primary); background:#f8fafc; padding:14px 16px; border-radius:14px; margin-top:14px; line-height:1.65; }
+  .progress-wrap { background:#e5e7eb; height:12px; border-radius:999px; overflow:hidden; }
+  .progress-bar { height:100%; width:0%; background:linear-gradient(90deg,var(--primary),var(--primary2)); transition:.2s; }
+  .timer { font-weight:900; color:#111827; background:#fff7ed; border:1px solid #fed7aa; padding:8px 12px; border-radius:999px; }
+  .result-pass { color:#059669; font-weight:900; } .result-fail { color:#dc2626; font-weight:900; }
+  .review-item { border:1px solid var(--line); border-radius:18px; padding:16px; margin:12px 0; background:#fff; }
+  .mini { font-size:13px; color:var(--muted); }
+  .searchbox { display:flex; gap:8px; } .searchbox input { flex:1; }
+  footer { color:var(--muted); text-align:center; padding:40px 20px; }
+  .notice { border:1px solid #fde68a; background:#fffbeb; color:#92400e; padding:14px 16px; border-radius:18px; line-height:1.7; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap hero">
+    <h1>ADsP 실전 모의고사 반복학습</h1>
+    <p>공식 ADsP 시험 구조에 맞춘 50문항 모의고사 + 과목별 반복학습 HTML</p>
+    <p>※ 실제 기출 원문 복제가 아니라, 공식 출제기준과 시험 비율에 맞춘 <b>자체 제작 실전형 문항</b>입니다.</p>
+    <div class="badges">
+      <span class="badge">필기 50문항</span><span class="badge">90분 타이머</span><span class="badge">과목별 과락 반영</span><span class="badge">문항은행 105문제</span><span class="badge">오답 반복</span>
+    </div>
+  </div>
+</header>
+<nav>
+  <div class="nav-inner">
+    <div class="nav-buttons">
+      <button onclick="showSection('home')">시험 안내</button>
+      <button onclick="showSection('exam')">모의고사</button>
+      <button onclick="showSection('practice')">과목별 연습</button>
+      <button onclick="showSection('wrong')">오답노트</button>
+      <button onclick="showSection('bank')">문항 검색</button>
+    </div>
+    <span class="timer" id="timer">90:00</span>
+  </div>
+</nav>
+<main>
+<section id="home" class="section">
+  <div class="grid">
+    <div class="card span-12">
+      <h2>검증 기준</h2>
+      <div class="notice">
+        이 HTML의 문제는 공개 웹에서 무단 복제한 기출문제가 아니라, KDATA 데이터자격시험의 공식 ADsP 시험 과목·문항 수·배점·합격 기준을 기준으로 만든 변형 모의문항입니다. 실제 시험 원문은 공개·복제 가능 여부가 불명확하므로, 저작권 위험이 있는 기출 원문 대신 공식 범위에 맞는 고신뢰 예상문항으로 구성했습니다.
+      </div>
+    </div>
+    <div class="card span-8">
+      <h2>ADsP 시험 구조 반영</h2>
+      <table class="table">
+        <thead><tr><th>과목</th><th>실제 시험 문항 비율</th><th>HTML 출제 방식</th><th>과락 기준</th></tr></thead>
+        <tbody>
+          <tr><td>데이터 이해</td><td>10문항</td><td>문항은행에서 10문항 랜덤</td><td>4문항 미만 정답 시 과락</td></tr>
+          <tr><td>데이터분석 기획</td><td>10문항</td><td>문항은행에서 10문항 랜덤</td><td>4문항 미만 정답 시 과락</td></tr>
+          <tr><td>데이터분석</td><td>30문항</td><td>문항은행에서 30문항 랜덤</td><td>12문항 미만 정답 시 과락</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card span-4">
+      <h2>빠른 시작</h2>
+      <p class="muted">실제 시험처럼 풀고 싶으면 바로 아래 버튼을 누르세요. 매번 문제 순서와 보기 순서가 섞입니다.</p>
+      <button class="primary" onclick="showSection('exam'); startExam();">90분 모의고사 시작</button>
+      <button class="ghost" onclick="showSection('practice')" style="margin-left:6px;">과목별 연습</button>
+    </div>
+    <div class="card span-12">
+      <h2>출제 범위 태그</h2>
+      <span class="pill">데이터와 정보</span><span class="pill">빅데이터 가치</span><span class="pill">데이터 사이언스</span><span class="pill">분석 기획</span><span class="pill">CRISP-DM</span><span class="pill">KDD</span><span class="pill">분석 거버넌스</span><span class="pill">R 기초</span><span class="pill">결측값</span><span class="pill">이상값</span><span class="pill">통계분석</span><span class="pill">회귀</span><span class="pill">분류</span><span class="pill">군집</span><span class="pill">연관분석</span><span class="pill">시계열</span>
+    </div>
+  </div>
+</section>
+
+<section id="exam" class="section hidden">
+  <div class="grid">
+    <div class="card span-12">
+      <div class="question-head">
+        <div>
+          <h2>실전 모의고사</h2>
+          <p class="muted">데이터 이해 10문항 + 데이터분석 기획 10문항 + 데이터분석 30문항 = 총 50문항</p>
+        </div>
+        <div>
+          <button class="primary" onclick="startExam()">새 모의고사 시작</button>
+          <button class="danger" onclick="resetCurrent()">현재 풀이 초기화</button>
+        </div>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="examProgress"></div></div>
+      <p class="mini" id="examProgressText">아직 시작하지 않았습니다.</p>
+    </div>
+    <div class="card span-12" id="examQuestionBox"></div>
+    <div class="card span-12 hidden" id="examResultBox"></div>
+  </div>
+</section>
+
+<section id="practice" class="section hidden">
+  <div class="grid">
+    <div class="card span-12">
+      <h2>과목별 연습 모드</h2>
+      <div class="settings">
+        <div><label>과목</label><select id="practiceSubject"><option>전체</option><option>데이터 이해</option><option>데이터분석 기획</option><option>데이터분석</option></select></div>
+        <div><label>난이도</label><select id="practiceDifficulty"><option>전체</option><option>하</option><option>중</option><option>상</option></select></div>
+        <div><label>출제 방식</label><select id="practiceMode"><option value="random">랜덤</option><option value="wrong">틀린 문제만</option><option value="unseen">안 푼 문제만</option></select></div>
+        <div><label>문항 수</label><input type="number" id="practiceCount" min="1" max="50" value="10"></div>
+      </div>
+      <div style="margin-top:14px"><button class="primary" onclick="startPractice()">연습 시작</button></div>
+    </div>
+    <div class="card span-12" id="practiceQuestionBox"></div>
+  </div>
+</section>
+
+<section id="wrong" class="section hidden">
+  <div class="grid">
+    <div class="card span-12">
+      <h2>오답노트</h2>
+      <p class="muted">틀린 문제는 자동으로 저장됩니다. 다시 풀기를 누르면 오답만 모아서 출제합니다.</p>
+      <button class="primary" onclick="startWrongPractice()">오답만 다시 풀기</button>
+      <button class="danger" onclick="clearHistory()">풀이 기록 전체 삭제</button>
+    </div>
+    <div class="card span-12" id="wrongList"></div>
+  </div>
+</section>
+
+<section id="bank" class="section hidden">
+  <div class="grid">
+    <div class="card span-12">
+      <h2>문항 검색</h2>
+      <div class="searchbox"><input id="bankSearch" type="text" placeholder="예: 실루엣, KDD, 결측값, R, 회귀" oninput="renderBank()"><button onclick="renderBank()">검색</button></div>
+      <p class="muted">문항은행 전체를 검색해서 약한 개념을 빠르게 찾아볼 수 있습니다.</p>
+    </div>
+    <div class="card span-12" id="bankList"></div>
+  </div>
+</section>
+</main>
+<footer>ADsP 실전 모의고사 반복학습 HTML · 공식 출제영역 기반 자체 제작 문제</footer>
+<script>
+const QUESTION_BANK = [
+  {
+    "id": "Q001",
+    "subject": "데이터 이해",
+    "topic": "데이터와 정보",
+    "difficulty": "하",
+    "question": "다음 중 DIKW 피라미드에서 “데이터를 의미 있게 가공하여 의사결정에 활용할 수 있는 형태”에 가장 가까운 것은?",
+    "choices": [
+      "데이터(Data)",
+      "정보(Information)",
+      "지식(Knowledge)",
+      "지혜(Wisdom)"
+    ],
+    "answer": 1,
+    "explanation": "데이터가 단순한 사실이라면, 정보는 목적과 맥락에 맞게 가공되어 의미를 가진 데이터입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q002",
+    "subject": "데이터 이해",
+    "topic": "데이터와 정보",
+    "difficulty": "하",
+    "question": "DIKW 피라미드의 일반적인 순서로 가장 적절한 것은?",
+    "choices": [
+      "정보 → 데이터 → 지식 → 지혜",
+      "데이터 → 정보 → 지식 → 지혜",
+      "데이터 → 지식 → 정보 → 지혜",
+      "지식 → 데이터 → 정보 → 지혜"
+    ],
+    "answer": 1,
+    "explanation": "DIKW는 Data, Information, Knowledge, Wisdom의 순서로 이해합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q003",
+    "subject": "데이터 이해",
+    "topic": "데이터 유형",
+    "difficulty": "하",
+    "question": "다음 중 정형 데이터에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "형식이 없어 저장 구조를 예측하기 어렵다",
+      "행과 열 구조로 저장되어 검색과 집계가 쉽다",
+      "이미지, 음성, 동영상이 대표적이다",
+      "XML, JSON만을 의미한다"
+    ],
+    "answer": 1,
+    "explanation": "정형 데이터는 관계형 DB 테이블처럼 행과 열 구조를 갖는 데이터입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q004",
+    "subject": "데이터 이해",
+    "topic": "데이터 유형",
+    "difficulty": "하",
+    "question": "다음 중 반정형 데이터의 예로 가장 적절한 것은?",
+    "choices": [
+      "관계형 데이터베이스의 고객 테이블",
+      "CCTV 영상 파일",
+      "JSON 문서",
+      "손글씨 이미지"
+    ],
+    "answer": 2,
+    "explanation": "JSON, XML, HTML처럼 태그나 키-값 구조는 있지만 고정된 테이블 구조는 아닌 데이터를 반정형 데이터라고 봅니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q005",
+    "subject": "데이터 이해",
+    "topic": "데이터베이스 특징",
+    "difficulty": "중",
+    "question": "데이터베이스의 일반적인 특징으로 보기 어려운 것은?",
+    "choices": [
+      "통합된 데이터",
+      "저장된 데이터",
+      "운영 데이터",
+      "개인 PC에 중복 저장된 사적 데이터"
+    ],
+    "answer": 3,
+    "explanation": "데이터베이스는 통합·저장·운영·공용 데이터의 성격을 갖습니다. 개인별 중복 저장은 데이터베이스 관리 목적과 거리가 있습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q006",
+    "subject": "데이터 이해",
+    "topic": "데이터베이스 활용",
+    "difficulty": "중",
+    "question": "OLTP와 OLAP에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "OLTP는 대량의 이력 데이터를 다차원 분석하는 데 특화된다",
+      "OLAP는 일상적인 거래 처리를 빠르게 수행하는 시스템이다",
+      "OLTP는 거래 처리, OLAP는 분석 처리에 초점이 있다",
+      "OLTP와 OLAP는 모두 분석 전용 시스템이다"
+    ],
+    "answer": 2,
+    "explanation": "OLTP는 거래 처리, OLAP는 분석과 의사결정 지원에 주로 활용됩니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q007",
+    "subject": "데이터 이해",
+    "topic": "빅데이터 이해",
+    "difficulty": "하",
+    "question": "빅데이터의 3V에 해당하지 않는 것은?",
+    "choices": [
+      "Volume",
+      "Velocity",
+      "Variety",
+      "Visibility"
+    ],
+    "answer": 3,
+    "explanation": "빅데이터의 대표 3V는 규모(Volume), 속도(Velocity), 다양성(Variety)입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q008",
+    "subject": "데이터 이해",
+    "topic": "빅데이터 가치",
+    "difficulty": "하",
+    "question": "빅데이터의 가치가 기존 데이터보다 커진 이유로 가장 적절한 것은?",
+    "choices": [
+      "데이터 저장 비용이 증가했기 때문이다",
+      "데이터 수집·저장·처리 기술이 발전하고 활용 범위가 넓어졌기 때문이다",
+      "모든 데이터가 자동으로 정답을 알려주기 때문이다",
+      "정형 데이터만 분석 가능해졌기 때문이다"
+    ],
+    "answer": 1,
+    "explanation": "저장·처리 기술과 분석 기법의 발전으로 다양한 데이터를 경제적으로 활용할 수 있게 되면서 가치가 커졌습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q009",
+    "subject": "데이터 이해",
+    "topic": "비즈니스 모델",
+    "difficulty": "중",
+    "question": "데이터 기반 비즈니스 모델의 설명으로 가장 적절한 것은?",
+    "choices": [
+      "데이터를 단순 보관만 하는 방식",
+      "데이터 분석 결과를 제품, 서비스, 의사결정에 반영하여 가치를 만드는 방식",
+      "데이터를 무조건 많이 수집하는 방식",
+      "분석 결과를 사용하지 않는 운영 방식"
+    ],
+    "answer": 1,
+    "explanation": "데이터 기반 비즈니스 모델은 데이터에서 도출한 인사이트를 실제 가치 창출 활동에 연결합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q010",
+    "subject": "데이터 이해",
+    "topic": "위기 요인과 통제 방안",
+    "difficulty": "중",
+    "question": "빅데이터 활용에서 발생할 수 있는 위기 요인으로 보기 어려운 것은?",
+    "choices": [
+      "사생활 침해",
+      "데이터 오용",
+      "책임 원칙 훼손",
+      "데이터 품질 향상"
+    ],
+    "answer": 3,
+    "explanation": "데이터 품질 향상은 위기 요인이라기보다 바람직한 관리 결과입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q011",
+    "subject": "데이터 이해",
+    "topic": "데이터 사이언스",
+    "difficulty": "하",
+    "question": "데이터 사이언티스트에게 요구되는 역량으로 가장 거리가 먼 것은?",
+    "choices": [
+      "통계와 분석 기법 이해",
+      "비즈니스 문제 이해",
+      "커뮤니케이션 능력",
+      "데이터를 해석하지 않고 그대로 보고하는 능력"
+    ],
+    "answer": 3,
+    "explanation": "데이터 사이언스는 분석 기술뿐 아니라 문제 정의, 해석, 전달 역량이 중요합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q012",
+    "subject": "데이터 이해",
+    "topic": "전략 인사이트",
+    "difficulty": "중",
+    "question": "전략 인사이트 도출에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "단순 집계표 작성이 최종 목표이다",
+      "분석 결과를 조직의 의사결정과 실행 전략으로 연결하는 것이다",
+      "데이터 수집 전에 결론을 고정하는 것이다",
+      "모든 분석은 기술보다 직감이 우선이다"
+    ],
+    "answer": 1,
+    "explanation": "전략 인사이트는 분석 결과를 실제 전략과 행동으로 연결하는 데 의미가 있습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q013",
+    "subject": "데이터 이해",
+    "topic": "데이터 가치",
+    "difficulty": "중",
+    "question": "암묵지와 형식지에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "암묵지는 문서화가 쉬운 지식이다",
+      "형식지는 개인 경험 속에만 존재한다",
+      "암묵지는 경험·노하우처럼 표현이 어려운 지식이고, 형식지는 문서화 가능한 지식이다",
+      "암묵지와 형식지는 데이터 분석과 무관하다"
+    ],
+    "answer": 2,
+    "explanation": "암묵지는 개인의 경험과 노하우에 가까워 전달이 어렵고, 형식지는 문서나 매뉴얼처럼 표현 가능합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q014",
+    "subject": "데이터 이해",
+    "topic": "데이터베이스 활용",
+    "difficulty": "중",
+    "question": "데이터 웨어하우스(DW)의 주된 목적은?",
+    "choices": [
+      "운영 거래를 실시간으로 한 건씩 처리",
+      "의사결정 지원을 위해 여러 출처의 데이터를 통합·저장·분석",
+      "이미지 파일만 압축 저장",
+      "네트워크 보안 장비 운영"
+    ],
+    "answer": 1,
+    "explanation": "DW는 분석과 의사결정 지원을 위해 주제 중심, 통합, 시계열, 비휘발 특성을 갖는 저장소로 이해합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q015",
+    "subject": "데이터 이해",
+    "topic": "데이터 활용",
+    "difficulty": "중",
+    "question": "데이터 마트(Data Mart)에 대한 설명으로 적절한 것은?",
+    "choices": [
+      "전사 데이터웨어하우스보다 더 넓은 범위의 모든 데이터를 반드시 포함한다",
+      "특정 부서나 목적에 맞게 구성한 분석용 데이터 저장소이다",
+      "데이터를 삭제하기 위한 임시 저장소이다",
+      "비정형 데이터만 저장하는 저장소이다"
+    ],
+    "answer": 1,
+    "explanation": "데이터 마트는 특정 조직, 업무, 분석 목적에 맞춰 구성된 비교적 작은 분석용 데이터 저장소입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q016",
+    "subject": "데이터 이해",
+    "topic": "빅데이터 영향",
+    "difficulty": "하",
+    "question": "데이터 분석이 기업 의사결정에 주는 영향으로 가장 적절한 것은?",
+    "choices": [
+      "경험과 직관을 완전히 금지한다",
+      "근거 기반 의사결정을 강화한다",
+      "데이터가 있으면 도메인 지식은 불필요하다",
+      "분석 결과는 실행과 무관하다"
+    ],
+    "answer": 1,
+    "explanation": "데이터 분석은 의사결정의 근거를 강화하지만, 도메인 지식과 실행 전략도 함께 필요합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q017",
+    "subject": "데이터 이해",
+    "topic": "데이터 품질",
+    "difficulty": "하",
+    "question": "분석에 사용할 데이터 품질 요소로 가장 거리가 먼 것은?",
+    "choices": [
+      "정확성",
+      "일관성",
+      "완전성",
+      "화면 색상"
+    ],
+    "answer": 3,
+    "explanation": "데이터 품질은 정확성, 완전성, 일관성, 적시성 등으로 판단합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q018",
+    "subject": "데이터 이해",
+    "topic": "개인정보와 윤리",
+    "difficulty": "중",
+    "question": "개인정보 비식별화의 목적에 가장 가까운 것은?",
+    "choices": [
+      "개인을 더 쉽게 식별하기 위해",
+      "분석 활용 시 개인 식별 위험을 낮추기 위해",
+      "데이터를 무조건 폐기하기 위해",
+      "모든 법적 책임을 자동으로 제거하기 위해"
+    ],
+    "answer": 1,
+    "explanation": "비식별화는 분석 활용 시 개인 식별 가능성을 낮추기 위한 조치입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q019",
+    "subject": "데이터 이해",
+    "topic": "데이터 이해 종합",
+    "difficulty": "하",
+    "question": "다음 중 데이터 분석 프로젝트의 출발점으로 가장 적절한 것은?",
+    "choices": [
+      "분석 도구부터 정한다",
+      "비즈니스 문제와 분석 목적을 명확히 한다",
+      "모든 데이터를 무조건 수집한다",
+      "모델 성능만 먼저 계산한다"
+    ],
+    "answer": 1,
+    "explanation": "분석은 해결할 문제와 목표를 명확히 정의하는 것에서 시작합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q020",
+    "subject": "데이터 이해",
+    "topic": "빅데이터 특징",
+    "difficulty": "하",
+    "question": "빅데이터의 Variety가 의미하는 것은?",
+    "choices": [
+      "데이터 생성 속도",
+      "데이터 규모",
+      "데이터 종류와 형식의 다양성",
+      "데이터 진실성만을 의미"
+    ],
+    "answer": 2,
+    "explanation": "Variety는 정형·반정형·비정형 등 데이터 유형의 다양성을 의미합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q021",
+    "subject": "데이터분석 기획",
+    "topic": "분석 기획 이해",
+    "difficulty": "하",
+    "question": "분석 기획의 핵심 역할로 가장 적절한 것은?",
+    "choices": [
+      "분석 목적 없이 모델부터 선택한다",
+      "비즈니스 문제를 분석 과제로 구체화하고 수행 방향을 정한다",
+      "분석 결과와 무관하게 보고서 형식만 정한다",
+      "데이터 수집을 금지한다"
+    ],
+    "answer": 1,
+    "explanation": "분석 기획은 비즈니스 목표와 데이터를 연결하여 분석 과제와 수행 계획을 구체화합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q022",
+    "subject": "데이터분석 기획",
+    "topic": "문제 정의",
+    "difficulty": "하",
+    "question": "좋은 분석 과제 정의에 필요한 요소로 가장 거리가 먼 것은?",
+    "choices": [
+      "분석 목적",
+      "분석 대상 데이터",
+      "기대 효과",
+      "담당자의 취향만 반영한 결론"
+    ],
+    "answer": 3,
+    "explanation": "분석 과제는 목적, 범위, 데이터, 방법, 기대 효과가 명확해야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q023",
+    "subject": "데이터분석 기획",
+    "topic": "분석 접근법",
+    "difficulty": "중",
+    "question": "Top-down 분석 과제 발굴 방식에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "데이터를 탐색하다가 우연히 과제를 찾는 방식",
+      "경영 목표나 업무 문제에서 출발해 분석 과제를 도출하는 방식",
+      "모델 성능이 높은 순서로 과제를 정하는 방식",
+      "외부 유행 기술만 기준으로 과제를 정하는 방식"
+    ],
+    "answer": 1,
+    "explanation": "Top-down은 비즈니스 목표·문제에서 시작하여 분석 과제를 정의하는 접근입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q024",
+    "subject": "데이터분석 기획",
+    "topic": "분석 접근법",
+    "difficulty": "중",
+    "question": "Bottom-up 분석 과제 발굴 방식에 가까운 것은?",
+    "choices": [
+      "명확한 경영 과제만 분석한다",
+      "보유 데이터 탐색을 통해 새로운 분석 기회를 발견한다",
+      "분석 결과를 보지 않는다",
+      "데이터를 수집하지 않는다"
+    ],
+    "answer": 1,
+    "explanation": "Bottom-up은 데이터 탐색과 패턴 발견을 통해 새로운 분석 과제를 발굴하는 접근입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q025",
+    "subject": "데이터분석 기획",
+    "topic": "분석 방법론",
+    "difficulty": "중",
+    "question": "CRISP-DM의 일반적인 단계에 포함되지 않는 것은?",
+    "choices": [
+      "Business Understanding",
+      "Data Understanding",
+      "Modeling",
+      "Hardware Manufacturing"
+    ],
+    "answer": 3,
+    "explanation": "CRISP-DM은 업무 이해, 데이터 이해, 데이터 준비, 모델링, 평가, 전개 단계로 이해합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q026",
+    "subject": "데이터분석 기획",
+    "topic": "분석 방법론",
+    "difficulty": "중",
+    "question": "KDD 분석 절차의 흐름으로 가장 적절한 것은?",
+    "choices": [
+      "모델링 → 배포 → 제조 → 폐기",
+      "선택 → 전처리 → 변환 → 데이터마이닝 → 해석/평가",
+      "회계 처리 → 법무 검토 → 영업 관리",
+      "데이터 삭제 → 결과 확정 → 분석 시작"
+    ],
+    "answer": 1,
+    "explanation": "KDD는 데이터 선택, 전처리, 변환, 데이터마이닝, 해석/평가의 흐름을 갖습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q027",
+    "subject": "데이터분석 기획",
+    "topic": "우선순위 평가",
+    "difficulty": "하",
+    "question": "분석 과제 우선순위 평가에서 일반적으로 고려할 요소로 적절한 것은?",
+    "choices": [
+      "시급성과 난이도",
+      "폰트 크기와 색상",
+      "파일 이름 길이",
+      "분석가의 점심 메뉴"
+    ],
+    "answer": 0,
+    "explanation": "분석 과제는 시급성, 중요도, 난이도, 기대 효과 등을 기준으로 우선순위를 판단합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q028",
+    "subject": "데이터분석 기획",
+    "topic": "분석 프로젝트 관리",
+    "difficulty": "하",
+    "question": "분석 프로젝트 관리 요소로 가장 적절한 것은?",
+    "choices": [
+      "범위, 일정, 품질, 위험 관리",
+      "색상, 글꼴, 배경음악 관리",
+      "무작위 결론 관리",
+      "데이터 삭제 관리만 수행"
+    ],
+    "answer": 0,
+    "explanation": "분석 프로젝트도 범위, 일정, 자원, 품질, 위험 등을 체계적으로 관리해야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q029",
+    "subject": "데이터분석 기획",
+    "topic": "분석 거버넌스",
+    "difficulty": "중",
+    "question": "분석 거버넌스 체계 수립의 목적은?",
+    "choices": [
+      "분석 활동을 개인의 감에만 맡기기 위해",
+      "조직 차원에서 분석 역할, 절차, 품질, 활용 체계를 정립하기 위해",
+      "분석 결과 공유를 금지하기 위해",
+      "분석 도구를 하나로 제한하기 위해"
+    ],
+    "answer": 1,
+    "explanation": "분석 거버넌스는 분석이 조직 내에서 지속적이고 일관되게 수행되도록 체계를 만드는 활동입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q030",
+    "subject": "데이터분석 기획",
+    "topic": "마스터 플랜",
+    "difficulty": "중",
+    "question": "분석 마스터 플랜 수립 시 가장 중요한 관점은?",
+    "choices": [
+      "단기 과제만 즉흥적으로 수행",
+      "조직 목표와 연계하여 분석 과제의 로드맵과 우선순위를 정리",
+      "모든 분석을 외부에만 위임",
+      "데이터 없이 모델부터 도입"
+    ],
+    "answer": 1,
+    "explanation": "마스터 플랜은 분석 과제를 조직 전략과 연결하고 단계별 실행 로드맵을 정하는 데 의미가 있습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q031",
+    "subject": "데이터분석 기획",
+    "topic": "분석 과제 발굴",
+    "difficulty": "중",
+    "question": "분석 과제 발굴 시 “분석으로 해결 가능한 문제인지”를 검토하는 이유는?",
+    "choices": [
+      "모든 문제는 분석으로 자동 해결되기 때문",
+      "분석 가능성, 데이터 확보 가능성, 기대 효과를 판단해야 하기 때문",
+      "분석 도구를 숨기기 위해",
+      "보고서 분량만 늘리기 위해"
+    ],
+    "answer": 1,
+    "explanation": "분석 과제는 데이터와 방법으로 해결 가능한지, 실행 가치가 있는지 검토해야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q032",
+    "subject": "데이터분석 기획",
+    "topic": "PoC와 Pilot",
+    "difficulty": "중",
+    "question": "PoC(Proof of Concept)의 목적에 가장 가까운 것은?",
+    "choices": [
+      "전체 시스템을 즉시 대규모 운영",
+      "아이디어나 기술의 실현 가능성을 소규모로 검증",
+      "분석 결과를 폐기",
+      "법무 문서만 작성"
+    ],
+    "answer": 1,
+    "explanation": "PoC는 본격 도입 전에 기술·분석 아이디어의 가능성을 검증하는 단계입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q033",
+    "subject": "데이터분석 기획",
+    "topic": "요건 정의",
+    "difficulty": "하",
+    "question": "분석 요건 정의 단계에서 해야 할 일로 가장 적절한 것은?",
+    "choices": [
+      "사용자 요구와 분석 목적을 구체화한다",
+      "모든 변수를 무조건 제거한다",
+      "결과를 먼저 조작한다",
+      "평가 기준을 만들지 않는다"
+    ],
+    "answer": 0,
+    "explanation": "요건 정의는 분석 목표, 데이터, 산출물, 평가 기준을 명확히 하는 단계입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q034",
+    "subject": "데이터분석 기획",
+    "topic": "성과 관리",
+    "difficulty": "중",
+    "question": "분석 성과 지표를 설정하는 이유는?",
+    "choices": [
+      "분석 결과가 목표 달성에 기여했는지 판단하기 위해",
+      "모델 학습을 금지하기 위해",
+      "데이터 수집량만 늘리기 위해",
+      "분석 과정을 숨기기 위해"
+    ],
+    "answer": 0,
+    "explanation": "성과 지표는 분석 결과의 효과를 측정하고 개선 방향을 잡기 위해 필요합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q035",
+    "subject": "데이터분석 기획",
+    "topic": "데이터 확보",
+    "difficulty": "중",
+    "question": "분석 기획 단계에서 데이터 확보 가능성을 확인해야 하는 이유는?",
+    "choices": [
+      "분석 목표와 무관하기 때문",
+      "필요 데이터가 없거나 품질이 낮으면 분석 수행과 신뢰도가 떨어지기 때문",
+      "데이터가 항상 완벽하기 때문",
+      "모델이 데이터를 자동 생성하기 때문"
+    ],
+    "answer": 1,
+    "explanation": "분석에 필요한 데이터의 존재, 접근 권한, 품질, 적시성을 미리 확인해야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q036",
+    "subject": "데이터분석 기획",
+    "topic": "위험 관리",
+    "difficulty": "중",
+    "question": "분석 프로젝트 위험 관리 사례로 적절한 것은?",
+    "choices": [
+      "데이터 접근 권한 지연 가능성을 사전에 파악하고 대응 계획을 세운다",
+      "일정을 기록하지 않는다",
+      "품질 검증 없이 바로 배포한다",
+      "요구사항 변경을 모두 무시한다"
+    ],
+    "answer": 0,
+    "explanation": "분석 프로젝트는 데이터, 일정, 품질, 요구사항 변경 같은 위험을 관리해야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q037",
+    "subject": "데이터분석 기획",
+    "topic": "분석 조직",
+    "difficulty": "하",
+    "question": "분석 조직의 역할에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "분석가는 비즈니스 이해가 전혀 필요 없다",
+      "현업, 데이터, 분석, IT 역할이 협업해야 한다",
+      "분석은 개인 혼자만 수행해야 한다",
+      "분석 결과는 공유하지 않는다"
+    ],
+    "answer": 1,
+    "explanation": "실제 분석 과제는 현업 지식, 데이터 접근, 분석 기술, 시스템 적용이 함께 필요합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q038",
+    "subject": "데이터분석 기획",
+    "topic": "분석 수준",
+    "difficulty": "중",
+    "question": "진단 분석에 해당하는 질문으로 가장 적절한 것은?",
+    "choices": [
+      "무슨 일이 일어났는가?",
+      "왜 그런 일이 일어났는가?",
+      "앞으로 무엇이 일어날 것인가?",
+      "무엇을 해야 하는가?"
+    ],
+    "answer": 1,
+    "explanation": "기술 분석은 “무슨 일이?”, 진단 분석은 “왜?”, 예측 분석은 “앞으로?”, 처방 분석은 “무엇을 해야?”에 가깝습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q039",
+    "subject": "데이터분석 기획",
+    "topic": "분석 기획 종합",
+    "difficulty": "하",
+    "question": "분석 과제 정의서에 포함될 내용으로 보기 어려운 것은?",
+    "choices": [
+      "분석 배경과 목적",
+      "데이터 범위",
+      "기대 효과",
+      "정답을 미리 조작하는 방법"
+    ],
+    "answer": 3,
+    "explanation": "과제 정의서는 분석 목적, 범위, 데이터, 방법, 일정, 산출물, 기대 효과 등을 명확히 담아야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q040",
+    "subject": "데이터분석 기획",
+    "topic": "평가 기준",
+    "difficulty": "중",
+    "question": "모델 평가 기준을 분석 전에 정하는 이유는?",
+    "choices": [
+      "결과를 객관적으로 판단하기 위해",
+      "평가를 하지 않기 위해",
+      "항상 정확도만 쓰기 위해",
+      "데이터 전처리를 생략하기 위해"
+    ],
+    "answer": 0,
+    "explanation": "분석 목적에 맞는 평가 지표를 사전에 정해야 결과를 객관적으로 판단할 수 있습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q041",
+    "subject": "데이터분석",
+    "topic": "R 기초",
+    "difficulty": "하",
+    "question": "R에서 결측값을 나타내는 대표적인 값은?",
+    "choices": [
+      "NULL",
+      "NA",
+      "NaN만 가능",
+      "Inf"
+    ],
+    "answer": 1,
+    "explanation": "R에서 일반적인 결측값은 NA로 표현합니다. NULL은 객체가 없음을 의미하는 경우가 많습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q042",
+    "subject": "데이터분석",
+    "topic": "R 기초",
+    "difficulty": "하",
+    "question": "R에서 여러 값을 하나의 벡터로 만들 때 주로 사용하는 함수는?",
+    "choices": [
+      "c()",
+      "data.frame()",
+      "plot()",
+      "lm()"
+    ],
+    "answer": 0,
+    "explanation": "c()는 combine의 의미로 여러 값을 벡터로 결합할 때 사용합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q043",
+    "subject": "데이터분석",
+    "topic": "R 기초",
+    "difficulty": "하",
+    "question": "R의 data.frame에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "모든 열이 반드시 같은 자료형이어야 한다",
+      "열마다 서로 다른 자료형을 가질 수 있는 2차원 데이터 구조이다",
+      "숫자 하나만 저장할 수 있다",
+      "그래프 전용 객체이다"
+    ],
+    "answer": 1,
+    "explanation": "data.frame은 열마다 다른 자료형을 가질 수 있으며 행과 열 구조를 가집니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q044",
+    "subject": "데이터분석",
+    "topic": "R 기초",
+    "difficulty": "중",
+    "question": "범주형 변수를 표현할 때 R에서 자주 사용하는 자료형은?",
+    "choices": [
+      "factor",
+      "matrix",
+      "array only",
+      "function"
+    ],
+    "answer": 0,
+    "explanation": "factor는 범주형 데이터를 표현하고 수준(level)을 관리하는 데 사용됩니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q045",
+    "subject": "데이터분석",
+    "topic": "데이터 마트",
+    "difficulty": "중",
+    "question": "분석용 데이터 마트를 만들 때 필요한 작업으로 가장 적절한 것은?",
+    "choices": [
+      "분석 목적에 맞게 데이터를 추출·정제·통합한다",
+      "원천 데이터를 모두 삭제한다",
+      "변수명을 무작위로 바꾼다",
+      "분석 대상 컬럼을 숨긴다"
+    ],
+    "answer": 0,
+    "explanation": "데이터 마트는 분석 목적에 맞게 필요한 데이터를 정제하고 통합하여 구성합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q046",
+    "subject": "데이터분석",
+    "topic": "결측값 처리",
+    "difficulty": "하",
+    "question": "결측값 처리 방법으로 보기 어려운 것은?",
+    "choices": [
+      "결측 행 제거",
+      "평균/중앙값 대체",
+      "예측 모델을 이용한 대체",
+      "결측 여부를 확인하지 않고 분석 결과를 확정"
+    ],
+    "answer": 3,
+    "explanation": "결측값은 분석 전에 패턴과 비율을 확인하고 적절히 처리해야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q047",
+    "subject": "데이터분석",
+    "topic": "이상값 검색",
+    "difficulty": "중",
+    "question": "IQR 기준 이상값 판단에서 일반적으로 사용하는 경계는?",
+    "choices": [
+      "평균 ± 1표준편차",
+      "Q1 - 1.5×IQR, Q3 + 1.5×IQR",
+      "최소값과 최대값의 평균",
+      "중앙값만 사용"
+    ],
+    "answer": 1,
+    "explanation": "박스플롯 방식에서는 Q1-1.5IQR 미만, Q3+1.5IQR 초과를 이상값 후보로 봅니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q048",
+    "subject": "데이터분석",
+    "topic": "기초 통계",
+    "difficulty": "하",
+    "question": "중앙값에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "자료를 크기순으로 정렬했을 때 가운데 위치한 값",
+      "모든 값을 더해 개수로 나눈 값",
+      "가장 자주 등장하는 값만 의미",
+      "항상 평균과 동일"
+    ],
+    "answer": 0,
+    "explanation": "중앙값은 정렬된 자료의 가운데 값이며 이상값의 영향을 평균보다 덜 받습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q049",
+    "subject": "데이터분석",
+    "topic": "기초 통계",
+    "difficulty": "하",
+    "question": "분산과 표준편차에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "자료의 중심 위치만 나타낸다",
+      "자료가 평균 주변에 얼마나 흩어져 있는지 나타낸다",
+      "범주형 변수의 개수만 센다",
+      "결측값 개수만 의미한다"
+    ],
+    "answer": 1,
+    "explanation": "분산과 표준편차는 데이터의 산포 정도를 나타냅니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q050",
+    "subject": "데이터분석",
+    "topic": "상관분석",
+    "difficulty": "중",
+    "question": "상관계수 r=-0.9에 대한 해석으로 가장 적절한 것은?",
+    "choices": [
+      "강한 양의 선형관계",
+      "강한 음의 선형관계",
+      "선형관계가 전혀 없음",
+      "인과관계가 확정됨"
+    ],
+    "answer": 1,
+    "explanation": "-1에 가까우면 강한 음의 선형 상관관계를 의미합니다. 단, 상관은 인과를 보장하지 않습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q051",
+    "subject": "데이터분석",
+    "topic": "가설검정",
+    "difficulty": "중",
+    "question": "p-value가 유의수준 0.05보다 작을 때 일반적인 판단은?",
+    "choices": [
+      "귀무가설을 기각할 근거가 있다",
+      "무조건 대립가설이 100% 참이다",
+      "데이터 분석을 중단한다",
+      "표본 크기를 0으로 만든다"
+    ],
+    "answer": 0,
+    "explanation": "p-value가 유의수준보다 작으면 귀무가설을 기각할 통계적 근거가 있다고 판단합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q052",
+    "subject": "데이터분석",
+    "topic": "가설검정",
+    "difficulty": "중",
+    "question": "제1종 오류(Type I Error)에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "참인 귀무가설을 잘못 기각하는 오류",
+      "거짓인 귀무가설을 채택하는 오류",
+      "표본을 무작위 추출하는 것",
+      "분산을 계산하는 것"
+    ],
+    "answer": 0,
+    "explanation": "제1종 오류는 귀무가설이 참인데도 기각하는 오류입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q053",
+    "subject": "데이터분석",
+    "topic": "가설검정",
+    "difficulty": "중",
+    "question": "제2종 오류(Type II Error)에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "참인 귀무가설을 잘못 기각",
+      "거짓인 귀무가설을 기각하지 못함",
+      "유의수준을 정함",
+      "표준편차를 계산함"
+    ],
+    "answer": 1,
+    "explanation": "제2종 오류는 실제로 차이가 있는데도 귀무가설을 기각하지 못하는 오류입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q054",
+    "subject": "데이터분석",
+    "topic": "통계분석",
+    "difficulty": "중",
+    "question": "두 집단의 평균 차이를 검정할 때 자주 사용하는 방법은?",
+    "choices": [
+      "t-검정",
+      "카이제곱 독립성 검정만 가능",
+      "K-means",
+      "Apriori"
+    ],
+    "answer": 0,
+    "explanation": "두 집단 평균 비교에는 t-검정이 자주 사용됩니다. 조건에 따라 대응/독립 표본 등을 구분합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q055",
+    "subject": "데이터분석",
+    "topic": "통계분석",
+    "difficulty": "중",
+    "question": "세 개 이상 집단의 평균 차이를 검정할 때 대표적으로 사용하는 방법은?",
+    "choices": [
+      "ANOVA",
+      "단순 빈도표",
+      "KNN",
+      "DBSCAN"
+    ],
+    "answer": 0,
+    "explanation": "분산분석(ANOVA)은 세 집단 이상 평균 차이 검정에 사용됩니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q056",
+    "subject": "데이터분석",
+    "topic": "카이제곱 검정",
+    "difficulty": "중",
+    "question": "범주형 변수 간 독립성 여부를 검정하는 대표적인 방법은?",
+    "choices": [
+      "카이제곱 검정",
+      "선형회귀만 사용",
+      "ARIMA",
+      "PCA"
+    ],
+    "answer": 0,
+    "explanation": "카이제곱 독립성 검정은 범주형 변수 간 관계를 검정할 때 사용됩니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q057",
+    "subject": "데이터분석",
+    "topic": "회귀분석",
+    "difficulty": "하",
+    "question": "단순선형회귀에서 종속변수와 독립변수의 관계를 가장 잘 설명하는 것은?",
+    "choices": [
+      "범주를 무작위로 나눈다",
+      "하나의 독립변수로 연속형 종속변수를 설명하거나 예측한다",
+      "모든 변수를 제거한다",
+      "거래 규칙만 찾는다"
+    ],
+    "answer": 1,
+    "explanation": "단순선형회귀는 하나의 독립변수와 연속형 종속변수 사이의 선형 관계를 모델링합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q058",
+    "subject": "데이터분석",
+    "topic": "회귀분석",
+    "difficulty": "중",
+    "question": "결정계수 R²에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "모델이 종속변수 변동을 얼마나 설명하는지 나타낸다",
+      "분류 모델의 클래스 개수이다",
+      "결측값 비율이다",
+      "p-value와 항상 같다"
+    ],
+    "answer": 0,
+    "explanation": "R²는 회귀모델의 설명력을 나타내며 1에 가까울수록 설명력이 높다고 해석합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q059",
+    "subject": "데이터분석",
+    "topic": "회귀분석",
+    "difficulty": "중",
+    "question": "다중공선성 문제를 진단할 때 자주 사용하는 지표는?",
+    "choices": [
+      "VIF",
+      "F1-score",
+      "Support",
+      "Lift"
+    ],
+    "answer": 0,
+    "explanation": "VIF는 독립변수 간 강한 선형 관계로 인한 다중공선성 여부를 진단하는 데 사용됩니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q060",
+    "subject": "데이터분석",
+    "topic": "분류분석",
+    "difficulty": "중",
+    "question": "로지스틱 회귀가 주로 사용되는 문제 유형은?",
+    "choices": [
+      "연속형 값만 예측",
+      "이진 또는 범주형 분류",
+      "이미지 압축 전용",
+      "군집 수 자동 결정만"
+    ],
+    "answer": 1,
+    "explanation": "로지스틱 회귀는 이진 분류를 포함한 분류 문제에 자주 사용됩니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q061",
+    "subject": "데이터분석",
+    "topic": "분류평가",
+    "difficulty": "하",
+    "question": "혼동행렬에서 TP는 무엇을 의미하는가?",
+    "choices": [
+      "실제 양성을 양성으로 예측",
+      "실제 음성을 양성으로 예측",
+      "실제 양성을 음성으로 예측",
+      "실제 음성을 음성으로 예측"
+    ],
+    "answer": 0,
+    "explanation": "TP(True Positive)는 실제 양성인 대상을 양성으로 올바르게 예측한 경우입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q062",
+    "subject": "데이터분석",
+    "topic": "분류평가",
+    "difficulty": "중",
+    "question": "정밀도(Precision)의 설명으로 가장 적절한 것은?",
+    "choices": [
+      "실제 양성 중 맞힌 비율",
+      "양성으로 예측한 것 중 실제 양성인 비율",
+      "전체 중 맞힌 비율",
+      "음성만 따로 계산한 비율"
+    ],
+    "answer": 1,
+    "explanation": "Precision은 모델이 양성이라고 예측한 대상 중 실제 양성의 비율입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q063",
+    "subject": "데이터분석",
+    "topic": "분류평가",
+    "difficulty": "중",
+    "question": "재현율(Recall)의 설명으로 가장 적절한 것은?",
+    "choices": [
+      "실제 양성 중 모델이 양성으로 맞힌 비율",
+      "예측 양성 중 실제 양성 비율",
+      "전체 정답 비율",
+      "오답 개수"
+    ],
+    "answer": 0,
+    "explanation": "Recall은 실제 양성을 놓치지 않고 찾아낸 비율입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q064",
+    "subject": "데이터분석",
+    "topic": "분류평가",
+    "difficulty": "중",
+    "question": "F1-score에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "정밀도와 재현율의 조화평균",
+      "정확도와 항상 동일",
+      "군집 개수",
+      "회귀계수"
+    ],
+    "answer": 0,
+    "explanation": "F1-score는 정밀도와 재현율을 함께 고려하는 조화평균 지표입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q065",
+    "subject": "데이터분석",
+    "topic": "데이터 마이닝",
+    "difficulty": "하",
+    "question": "지도학습에 해당하는 것은?",
+    "choices": [
+      "정답 라벨이 있는 데이터로 예측 모델을 학습",
+      "라벨 없이 유사한 데이터끼리 묶음",
+      "빈발 항목 규칙만 탐색",
+      "변수를 무조건 삭제"
+    ],
+    "answer": 0,
+    "explanation": "지도학습은 입력과 정답 라벨을 이용해 예측 규칙을 학습합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q066",
+    "subject": "데이터분석",
+    "topic": "데이터 마이닝",
+    "difficulty": "하",
+    "question": "비지도학습에 해당하는 대표 기법은?",
+    "choices": [
+      "군집분석",
+      "로지스틱 회귀",
+      "선형회귀",
+      "의사결정나무 분류"
+    ],
+    "answer": 0,
+    "explanation": "군집분석은 정답 라벨 없이 유사한 데이터끼리 그룹화하는 비지도학습입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q067",
+    "subject": "데이터분석",
+    "topic": "군집분석",
+    "difficulty": "중",
+    "question": "K-means 알고리즘에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "사전에 정한 K개의 중심을 기준으로 데이터를 군집화한다",
+      "라벨이 반드시 필요하다",
+      "연관규칙의 향상도만 계산한다",
+      "시계열 정상성만 검정한다"
+    ],
+    "answer": 0,
+    "explanation": "K-means는 K개의 중심점과 각 데이터의 거리를 기준으로 군집을 갱신합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q068",
+    "subject": "데이터분석",
+    "topic": "군집분석",
+    "difficulty": "중",
+    "question": "군집화 평가 지표 중 -1에서 1 사이 값을 가지며 1에 가까울수록 군집이 잘 형성되었음을 의미하는 것은?",
+    "choices": [
+      "실루엣 계수",
+      "평균제곱오차",
+      "p-value",
+      "VIF"
+    ],
+    "answer": 0,
+    "explanation": "실루엣 계수는 군집 내 응집도와 군집 간 분리도를 함께 고려하며 1에 가까울수록 좋습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q069",
+    "subject": "데이터분석",
+    "topic": "군집분석",
+    "difficulty": "중",
+    "question": "DBSCAN에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "밀도 기반 군집화로 노이즈 포인트를 구분할 수 있다",
+      "항상 모든 데이터를 같은 크기의 군집으로 나눈다",
+      "K 값을 반드시 지정해야 한다",
+      "회귀계수를 추정한다"
+    ],
+    "answer": 0,
+    "explanation": "DBSCAN은 eps와 minPts를 기준으로 밀도 기반 군집을 찾고 노이즈를 구분할 수 있습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q070",
+    "subject": "데이터분석",
+    "topic": "연관분석",
+    "difficulty": "중",
+    "question": "연관규칙 분석에서 지지도(Support)의 의미는?",
+    "choices": [
+      "전체 거래 중 특정 항목집합이 함께 나타나는 비율",
+      "A가 발생했을 때 B가 발생할 조건부 확률",
+      "규칙의 우연성 보정 정도",
+      "분류 모델 정확도"
+    ],
+    "answer": 0,
+    "explanation": "지지도는 전체 거래에서 해당 항목집합이 등장하는 비율입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q071",
+    "subject": "데이터분석",
+    "topic": "연관분석",
+    "difficulty": "중",
+    "question": "연관규칙 A→B의 신뢰도(Confidence)에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "A가 포함된 거래 중 B도 포함된 거래의 비율",
+      "전체 거래 중 B만 등장한 비율",
+      "A와 B가 독립임을 보장하는 값",
+      "회귀모델 설명력"
+    ],
+    "answer": 0,
+    "explanation": "Confidence는 A가 발생했을 때 B가 함께 발생할 조건부 확률로 볼 수 있습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q072",
+    "subject": "데이터분석",
+    "topic": "연관분석",
+    "difficulty": "중",
+    "question": "향상도(Lift)가 1보다 큰 경우의 해석으로 가장 적절한 것은?",
+    "choices": [
+      "A와 B가 독립보다 함께 나타날 가능성이 높다",
+      "A와 B는 절대 함께 나타나지 않는다",
+      "모델이 과적합이다",
+      "결측값이 많다는 뜻이다"
+    ],
+    "answer": 0,
+    "explanation": "Lift가 1보다 크면 A와 B가 독립일 때보다 함께 나타날 가능성이 높다고 해석합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q073",
+    "subject": "데이터분석",
+    "topic": "의사결정나무",
+    "difficulty": "하",
+    "question": "의사결정나무의 장점으로 가장 적절한 것은?",
+    "choices": [
+      "해석이 비교적 쉽고 규칙 형태로 표현 가능",
+      "반드시 딥러닝보다 항상 성능이 높다",
+      "결측값을 절대 처리할 수 없다",
+      "분류에는 사용할 수 없다"
+    ],
+    "answer": 0,
+    "explanation": "의사결정나무는 조건 분기를 통해 결과를 설명할 수 있어 해석이 비교적 쉽습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q074",
+    "subject": "데이터분석",
+    "topic": "앙상블",
+    "difficulty": "중",
+    "question": "랜덤포레스트에 대한 설명으로 적절한 것은?",
+    "choices": [
+      "여러 결정나무를 결합하여 예측 안정성을 높이는 앙상블 기법",
+      "하나의 선형식만 사용하는 방법",
+      "군집 중심 하나만 찾는 방법",
+      "시계열 차분 전용 함수"
+    ],
+    "answer": 0,
+    "explanation": "랜덤포레스트는 여러 결정나무를 학습시키고 결과를 결합하는 배깅 기반 앙상블입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q075",
+    "subject": "데이터분석",
+    "topic": "모델검증",
+    "difficulty": "하",
+    "question": "과적합(Overfitting)에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "훈련 데이터에는 잘 맞지만 새로운 데이터 성능이 떨어지는 현상",
+      "훈련과 테스트 모두 성능이 낮은 현상만 의미",
+      "데이터가 전혀 없는 상태",
+      "정답 라벨이 많은 상태"
+    ],
+    "answer": 0,
+    "explanation": "과적합은 훈련 데이터의 잡음까지 학습해 일반화 성능이 떨어지는 현상입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q076",
+    "subject": "데이터분석",
+    "topic": "모델검증",
+    "difficulty": "중",
+    "question": "교차검증을 사용하는 주된 이유는?",
+    "choices": [
+      "모델의 일반화 성능을 더 안정적으로 평가하기 위해",
+      "모든 데이터를 삭제하기 위해",
+      "정답 라벨을 숨기기 위해",
+      "분석 시간을 0으로 만들기 위해"
+    ],
+    "answer": 0,
+    "explanation": "교차검증은 데이터를 여러 번 나누어 학습/검증함으로써 성능 추정의 안정성을 높입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q077",
+    "subject": "데이터분석",
+    "topic": "차원축소",
+    "difficulty": "중",
+    "question": "PCA의 주된 목적은?",
+    "choices": [
+      "상관된 변수들을 더 적은 수의 주성분으로 요약",
+      "종속변수를 범주형으로 변환만 함",
+      "결측값을 모두 0으로 대체",
+      "거래 규칙 생성"
+    ],
+    "answer": 0,
+    "explanation": "PCA는 데이터 분산을 최대한 보존하는 방향의 주성분으로 차원을 줄이는 기법입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q078",
+    "subject": "데이터분석",
+    "topic": "차원축소",
+    "difficulty": "중",
+    "question": "PCA에서 첫 번째 주성분의 의미로 가장 적절한 것은?",
+    "choices": [
+      "데이터 분산을 가장 많이 설명하는 축",
+      "항상 원래 첫 번째 변수와 동일",
+      "정답 라벨",
+      "결측값 개수"
+    ],
+    "answer": 0,
+    "explanation": "첫 번째 주성분은 데이터의 분산을 가장 크게 설명하는 방향입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q079",
+    "subject": "데이터분석",
+    "topic": "시계열",
+    "difficulty": "하",
+    "question": "시계열 데이터의 구성 요소로 보기 어려운 것은?",
+    "choices": [
+      "추세",
+      "계절성",
+      "불규칙 변동",
+      "HTML 태그 색상"
+    ],
+    "answer": 3,
+    "explanation": "시계열은 추세, 계절성, 순환, 불규칙 변동 등으로 설명할 수 있습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q080",
+    "subject": "데이터분석",
+    "topic": "시계열",
+    "difficulty": "중",
+    "question": "정상성(Stationarity)에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "시계열의 평균과 분산 등 통계적 특성이 시간에 따라 일정한 상태",
+      "항상 증가하는 상태",
+      "결측값이 없는 상태만 의미",
+      "그래프 색상이 일정한 상태"
+    ],
+    "answer": 0,
+    "explanation": "정상성은 시간에 따라 평균, 분산, 자기상관 구조 등이 안정적인 성질을 의미합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q081",
+    "subject": "데이터분석",
+    "topic": "시계열",
+    "difficulty": "중",
+    "question": "차분(Differencing)을 사용하는 주된 목적은?",
+    "choices": [
+      "비정상 시계열을 정상에 가깝게 만들기 위해",
+      "범주형 변수를 문자로 바꾸기 위해",
+      "분류 정확도만 계산하기 위해",
+      "모든 데이터를 삭제하기 위해"
+    ],
+    "answer": 0,
+    "explanation": "차분은 이전 시점과의 차이를 사용하여 추세를 제거하고 정상성을 개선하는 데 자주 사용됩니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q082",
+    "subject": "데이터분석",
+    "topic": "시계열",
+    "difficulty": "중",
+    "question": "ARIMA 모형에서 I는 주로 무엇을 의미하는가?",
+    "choices": [
+      "차분을 통한 통합(Integrated) 부분",
+      "이미지(Image)",
+      "독립성(Independence)만",
+      "항목집합(Itemset)"
+    ],
+    "answer": 0,
+    "explanation": "ARIMA의 I는 Integrated로, 차분을 통해 정상성을 확보하는 부분과 관련됩니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q083",
+    "subject": "데이터분석",
+    "topic": "전처리",
+    "difficulty": "하",
+    "question": "표준화(Standardization)에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "평균 0, 표준편차 1이 되도록 변환",
+      "최댓값을 항상 100으로 고정",
+      "범주형 변수를 삭제",
+      "결측값을 문자로 변환"
+    ],
+    "answer": 0,
+    "explanation": "표준화는 보통 z-score 방식으로 평균 0, 표준편차 1이 되게 스케일링합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q084",
+    "subject": "데이터분석",
+    "topic": "전처리",
+    "difficulty": "하",
+    "question": "정규화(Min-Max Scaling)에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "값을 보통 0~1 범위로 변환",
+      "평균을 반드시 0으로 만든다",
+      "문자열만 처리한다",
+      "결측값만 탐지한다"
+    ],
+    "answer": 0,
+    "explanation": "Min-Max 정규화는 최소값과 최대값을 이용해 값을 지정 범위로 변환합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q085",
+    "subject": "데이터분석",
+    "topic": "표본추출",
+    "difficulty": "중",
+    "question": "무작위 표본추출의 목적에 가장 가까운 것은?",
+    "choices": [
+      "표본 선택 편향을 줄이고 모집단 대표성을 높이기 위해",
+      "원하는 결론만 얻기 위해",
+      "큰 값만 뽑기 위해",
+      "결측값만 모으기 위해"
+    ],
+    "answer": 0,
+    "explanation": "무작위 추출은 특정 방향의 선택 편향을 줄이는 데 도움이 됩니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q086",
+    "subject": "데이터분석",
+    "topic": "확률",
+    "difficulty": "하",
+    "question": "조건부확률 P(B|A)의 의미로 옳은 것은?",
+    "choices": [
+      "A가 발생했다는 조건에서 B가 발생할 확률",
+      "B가 발생했다는 조건에서 A가 발생할 확률만",
+      "A와 B가 동시에 발생하지 않을 확률",
+      "A의 여집합 확률"
+    ],
+    "answer": 0,
+    "explanation": "P(B|A)는 A가 주어진 상황에서 B가 발생할 확률입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q087",
+    "subject": "데이터분석",
+    "topic": "베이즈",
+    "difficulty": "중",
+    "question": "나이브 베이즈 분류기의 핵심 가정은?",
+    "choices": [
+      "특징들이 클래스 조건부로 서로 독립이라고 가정",
+      "모든 변수는 반드시 연속형",
+      "군집 수는 항상 2개",
+      "회귀계수는 모두 0"
+    ],
+    "answer": 0,
+    "explanation": "나이브 베이즈는 각 특징이 클래스가 주어진 상태에서 독립이라고 단순화하여 분류합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q088",
+    "subject": "데이터분석",
+    "topic": "KNN",
+    "difficulty": "중",
+    "question": "KNN 알고리즘에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "가까운 K개의 이웃 정보를 이용해 분류 또는 회귀를 수행",
+      "데이터를 무조건 선형식으로만 설명",
+      "연관규칙만 생성",
+      "시간 순서만 분석"
+    ],
+    "answer": 0,
+    "explanation": "KNN은 거리 기반으로 가까운 이웃의 라벨 또는 값을 참고합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q089",
+    "subject": "데이터분석",
+    "topic": "SVM",
+    "difficulty": "중",
+    "question": "SVM의 기본 아이디어로 가장 적절한 것은?",
+    "choices": [
+      "클래스 사이의 마진이 최대가 되는 결정 경계를 찾는다",
+      "모든 데이터를 하나의 평균으로 대체한다",
+      "연관규칙의 지지도만 계산한다",
+      "시계열만 처리한다"
+    ],
+    "answer": 0,
+    "explanation": "SVM은 분류 경계와 가장 가까운 데이터 사이의 마진을 최대화하는 방향으로 학습합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q090",
+    "subject": "데이터분석",
+    "topic": "ROC/AUC",
+    "difficulty": "중",
+    "question": "AUC에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "ROC 곡선 아래 면적으로 분류 모델의 구분 능력을 나타낸다",
+      "회귀식의 기울기만 의미",
+      "군집 개수",
+      "결측값 비율"
+    ],
+    "answer": 0,
+    "explanation": "AUC는 여러 임계값에서의 TPR/FPR 관계를 종합한 구분 성능 지표입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q091",
+    "subject": "데이터분석",
+    "topic": "데이터 분할",
+    "difficulty": "하",
+    "question": "학습용 데이터와 테스트용 데이터를 분리하는 이유는?",
+    "choices": [
+      "모델이 보지 못한 데이터에서 성능을 평가하기 위해",
+      "훈련 데이터를 없애기 위해",
+      "정답을 감추기 위해서만",
+      "모델을 실행하지 않기 위해"
+    ],
+    "answer": 0,
+    "explanation": "테스트 데이터는 모델의 일반화 성능을 확인하기 위해 학습에 사용하지 않고 남겨둡니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q092",
+    "subject": "데이터분석",
+    "topic": "변수 선택",
+    "difficulty": "중",
+    "question": "불필요하거나 중복된 변수를 줄이는 이유로 적절한 것은?",
+    "choices": [
+      "모델 복잡도를 줄이고 해석성과 일반화 성능을 개선할 수 있기 때문",
+      "무조건 성능을 100%로 만들기 때문",
+      "데이터를 모두 제거하기 위해",
+      "결과를 숨기기 위해"
+    ],
+    "answer": 0,
+    "explanation": "변수 선택은 과적합 완화, 해석성 향상, 계산 효율 개선에 도움이 될 수 있습니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q093",
+    "subject": "데이터분석",
+    "topic": "시각화",
+    "difficulty": "하",
+    "question": "산점도가 특히 유용한 경우는?",
+    "choices": [
+      "두 연속형 변수의 관계를 시각적으로 확인할 때",
+      "범주 하나의 빈도만 셀 때 항상 유일한 방법",
+      "결측값을 자동 대체할 때",
+      "모델을 저장할 때"
+    ],
+    "answer": 0,
+    "explanation": "산점도는 두 수치형 변수 간 관계, 패턴, 이상값 확인에 유용합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q094",
+    "subject": "데이터분석",
+    "topic": "데이터 탐색",
+    "difficulty": "하",
+    "question": "EDA의 목적에 가장 가까운 것은?",
+    "choices": [
+      "데이터 구조, 분포, 이상값, 관계를 탐색하여 분석 방향을 잡는다",
+      "모델 결과만 발표한다",
+      "원천 데이터를 모두 삭제한다",
+      "분석 목적을 숨긴다"
+    ],
+    "answer": 0,
+    "explanation": "탐색적 데이터 분석은 본격 모델링 전 데이터 이해와 가설 수립에 중요합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q095",
+    "subject": "데이터분석",
+    "topic": "결측값 처리",
+    "difficulty": "중",
+    "question": "결측값이 무작위가 아니라 특정 패턴으로 발생할 때 주의할 점은?",
+    "choices": [
+      "단순 삭제가 편향을 만들 수 있으므로 발생 원인을 검토해야 한다",
+      "무조건 평균 대체하면 완벽하다",
+      "결측은 분석에 영향이 전혀 없다",
+      "결측 행만 사용해야 한다"
+    ],
+    "answer": 0,
+    "explanation": "결측 발생 메커니즘에 따라 삭제나 대체가 편향을 만들 수 있으므로 원인을 검토해야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q096",
+    "subject": "데이터분석",
+    "topic": "이상값 처리",
+    "difficulty": "중",
+    "question": "이상값 처리에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "항상 제거해야 한다",
+      "도메인과 발생 원인을 검토한 뒤 제거, 수정, 유지 여부를 결정한다",
+      "무조건 평균으로 바꾼다",
+      "분석 전에 확인할 필요가 없다"
+    ],
+    "answer": 1,
+    "explanation": "이상값은 오류일 수도 있지만 중요한 신호일 수도 있으므로 맥락을 확인해야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q097",
+    "subject": "데이터분석",
+    "topic": "모델평가",
+    "difficulty": "하",
+    "question": "회귀 모델 평가 지표로 가장 적절한 것은?",
+    "choices": [
+      "RMSE",
+      "정밀도만",
+      "지지도만",
+      "실루엣 계수만"
+    ],
+    "answer": 0,
+    "explanation": "RMSE는 예측값과 실제값 차이의 제곱평균제곱근으로 회귀 평가에 사용됩니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q098",
+    "subject": "데이터분석",
+    "topic": "모델평가",
+    "difficulty": "중",
+    "question": "분류 문제에서 클래스 불균형이 심할 때 정확도만 보면 위험한 이유는?",
+    "choices": [
+      "다수 클래스만 맞혀도 정확도가 높아 보일 수 있기 때문",
+      "정확도는 항상 0이기 때문",
+      "정확도는 회귀에만 쓰기 때문",
+      "정확도는 계산할 수 없기 때문"
+    ],
+    "answer": 0,
+    "explanation": "불균형 데이터에서는 정확도 외에 정밀도, 재현율, F1, ROC-AUC 등을 함께 봐야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q099",
+    "subject": "데이터분석",
+    "topic": "데이터 마이닝 개요",
+    "difficulty": "하",
+    "question": "데이터 마이닝의 목적에 가장 가까운 것은?",
+    "choices": [
+      "대량 데이터에서 유용한 패턴과 지식을 발견",
+      "데이터를 무조건 암호화만 수행",
+      "운영체제 설치",
+      "문서 디자인"
+    ],
+    "answer": 0,
+    "explanation": "데이터 마이닝은 데이터 속에서 의미 있는 패턴, 규칙, 관계를 찾아 의사결정에 활용합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q100",
+    "subject": "데이터분석",
+    "topic": "분류분석",
+    "difficulty": "하",
+    "question": "분류분석의 예로 가장 적절한 것은?",
+    "choices": [
+      "고객 이탈 여부 예측",
+      "다음 달 매출액의 정확한 연속값 예측만",
+      "상품 간 연관규칙 생성만",
+      "유사 고객 그룹 자동 분리만"
+    ],
+    "answer": 0,
+    "explanation": "고객 이탈 여부처럼 범주형 목표값을 예측하는 문제는 분류분석입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q101",
+    "subject": "데이터분석",
+    "topic": "회귀분석",
+    "difficulty": "하",
+    "question": "회귀분석의 예로 가장 적절한 것은?",
+    "choices": [
+      "주택 가격 예측",
+      "스팸/정상 메일 분류",
+      "고객 군집 나누기",
+      "장바구니 연관규칙 탐색"
+    ],
+    "answer": 0,
+    "explanation": "주택 가격처럼 연속형 값을 예측하는 문제는 회귀분석입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q102",
+    "subject": "데이터분석",
+    "topic": "군집분석",
+    "difficulty": "중",
+    "question": "군집분석 결과를 해석할 때 주의할 점은?",
+    "choices": [
+      "군집 이름과 의미는 분석가가 데이터 특성을 보고 해석해야 한다",
+      "군집 번호 자체가 항상 등급을 의미한다",
+      "군집은 반드시 정답 라벨과 같다",
+      "군집 수가 많을수록 무조건 좋다"
+    ],
+    "answer": 0,
+    "explanation": "군집 번호는 알고리즘이 부여한 그룹일 뿐이며, 각 군집의 특성을 분석해 의미를 부여해야 합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q103",
+    "subject": "데이터분석",
+    "topic": "연관분석",
+    "difficulty": "하",
+    "question": "장바구니 분석에서 “맥주를 산 고객이 기저귀도 산다”와 같은 규칙을 찾는 기법은?",
+    "choices": [
+      "연관분석",
+      "선형회귀",
+      "PCA",
+      "시계열 차분"
+    ],
+    "answer": 0,
+    "explanation": "상품 동시 구매 패턴을 규칙으로 찾는 대표 기법이 연관분석입니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q104",
+    "subject": "데이터분석",
+    "topic": "통계분석 종합",
+    "difficulty": "중",
+    "question": "표본의 크기가 커질수록 일반적으로 표본평균의 표준오차는 어떻게 되는가?",
+    "choices": [
+      "감소한다",
+      "항상 증가한다",
+      "항상 1이 된다",
+      "계산할 수 없다"
+    ],
+    "answer": 0,
+    "explanation": "표준오차는 보통 표준편차를 표본크기의 제곱근으로 나누므로 표본 크기가 커지면 감소합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  },
+  {
+    "id": "Q105",
+    "subject": "데이터분석",
+    "topic": "통계분석 종합",
+    "difficulty": "중",
+    "question": "신뢰구간에 대한 설명으로 가장 적절한 것은?",
+    "choices": [
+      "모수의 가능한 범위를 표본으로부터 추정한 구간",
+      "항상 실제값을 100% 포함하는 구간",
+      "결측값 범위",
+      "분류 임계값만 의미"
+    ],
+    "answer": 0,
+    "explanation": "신뢰구간은 표본을 통해 모수가 있을 것으로 추정되는 범위를 제시합니다.",
+    "sourceBasis": "KDATA 공식 ADsP 출제영역 기반 자체 제작 문항"
+  }
+];
+const SPEC = { '데이터 이해': 10, '데이터분석 기획': 10, '데이터분석': 30 };
+let exam = { questions: [], index: 0, answers: {}, submitted: false, startedAt: null, secondsLeft: 90*60 };
+let practice = { questions: [], index: 0, answers: {} };
+let timerHandle = null;
+let history = JSON.parse(localStorage.getItem('adspHistoryV1') || '{}');
+function saveHistory() { localStorage.setItem('adspHistoryV1', JSON.stringify(history)); }
+function shuffle(arr) { const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function sample(arr,n) { return shuffle(arr).slice(0,n); }
+function showSection(id) { document.querySelectorAll('.section').forEach(s=>s.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); if(id==='wrong') renderWrong(); if(id==='bank') renderBank(); window.scrollTo({top:0, behavior:'smooth'}); }
+function startTimer() { clearInterval(timerHandle); updateTimer(); timerHandle=setInterval(()=>{ if(exam.secondsLeft>0){ exam.secondsLeft--; updateTimer(); } else { clearInterval(timerHandle); if(exam.questions.length && !exam.submitted) submitExam(); } },1000); }
+function updateTimer() { const m=String(Math.floor(exam.secondsLeft/60)).padStart(2,'0'); const s=String(exam.secondsLeft%60).padStart(2,'0'); document.getElementById('timer').textContent = m+':'+s; }
+function startExam() {
+  exam.questions=[]; Object.entries(SPEC).forEach(([subject,count])=>{ exam.questions.push(...sample(QUESTION_BANK.filter(q=>q.subject===subject), count)); });
+  exam.questions = shuffle(exam.questions).map(q => ({...q, order: shuffle(q.choices.map((c,i)=>({c,i})))}));
+  exam.index=0; exam.answers={}; exam.submitted=false; exam.startedAt=Date.now(); exam.secondsLeft=90*60;
+  document.getElementById('examResultBox').classList.add('hidden'); startTimer(); renderExamQuestion();
+}
+function resetCurrent() { exam.index=0; exam.answers={}; exam.submitted=false; renderExamQuestion(); }
+function renderExamQuestion() {
+  const box=document.getElementById('examQuestionBox');
+  if(!exam.questions.length) { box.innerHTML='<p class="muted">아직 모의고사를 시작하지 않았습니다.</p>'; return; }
+  const q=exam.questions[exam.index]; const selected=exam.answers[q.id];
+  const done=Object.keys(exam.answers).length; document.getElementById('examProgress').style.width=(done/exam.questions.length*100)+'%'; document.getElementById('examProgressText').textContent=`풀이 진행: ${done} / ${exam.questions.length}문항`;
+  box.innerHTML = `<div class="question-head"><div><span class="pill">${q.subject}</span><span class="pill">${q.topic}</span><span class="pill">난이도 ${q.difficulty}</span></div><b>${exam.index+1} / ${exam.questions.length}</b></div><div class="q-title">${escapeHtml(q.question)}</div>` +
+  q.order.map((o,idx)=>`<label class="choice"><input type="radio" name="examChoice" ${selected===o.i?'checked':''} onchange="answerExam('${q.id}',${o.i})"><b>${idx+1}.</b><span>${escapeHtml(o.c)}</span></label>`).join('') +
+  `<div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap"><button class="ghost" onclick="prevExam()">이전</button><button class="ghost" onclick="nextExam()">다음</button><button class="primary" onclick="submitExam()">제출하고 채점</button></div>`;
+}
+function answerExam(id,ans) { exam.answers[id]=ans; renderExamQuestion(); }
+function prevExam() { if(exam.index>0){ exam.index--; renderExamQuestion(); } }
+function nextExam() { if(exam.index<exam.questions.length-1){ exam.index++; renderExamQuestion(); } }
+function submitExam() {
+  if(!exam.questions.length) return; exam.submitted=true; clearInterval(timerHandle);
+  let subj={}; Object.keys(SPEC).forEach(s=>subj[s]={correct:0,total:0});
+  let correct=0; const rows=[];
+  exam.questions.forEach(q=>{ const a=exam.answers[q.id]; const ok=a===q.answer; subj[q.subject].total++; if(ok){ correct++; subj[q.subject].correct++; } history[q.id]={lastCorrect:ok, attempts:(history[q.id]?.attempts||0)+1, lastAnswer:a, updatedAt:new Date().toISOString()}; rows.push({q,a,ok}); }); saveHistory();
+  const score=correct*2; const passTotal=score>=60; const passCut=Object.entries(subj).every(([s,v])=> v.correct >= Math.ceil(SPEC[s]*0.4)); const pass=passTotal && passCut;
+  const result=document.getElementById('examResultBox'); result.classList.remove('hidden');
+  result.innerHTML = `<h2>채점 결과: <span class="${pass?'result-pass':'result-fail'}">${pass?'합격':'불합격'}</span></h2><div class="stat-row"><div class="stat">점수<b>${score}점</b></div><div class="stat">정답 수<b>${correct}/50</b></div><div class="stat">총점 기준<b>${passTotal?'통과':'미달'}</b></div><div class="stat">과락 기준<b>${passCut?'통과':'과락'}</b></div></div>` +
+  `<table class="table" style="margin-top:16px"><thead><tr><th>과목</th><th>정답</th><th>기준</th><th>판정</th></tr></thead><tbody>${Object.entries(subj).map(([s,v])=>`<tr><td>${s}</td><td>${v.correct}/${v.total}</td><td>${Math.ceil(SPEC[s]*0.4)}문항 이상</td><td>${v.correct>=Math.ceil(SPEC[s]*0.4)?'통과':'과락'}</td></tr>`).join('')}</tbody></table>` +
+  `<h3 style="margin-top:22px">문항별 해설</h3>` + rows.map((r,i)=>reviewHtml(r.q,r.a,r.ok,i+1)).join('');
+  renderExamQuestion(); result.scrollIntoView({behavior:'smooth'});
+}
+function startPractice() {
+  const sub=document.getElementById('practiceSubject').value; const diff=document.getElementById('practiceDifficulty').value; const mode=document.getElementById('practiceMode').value; const count=parseInt(document.getElementById('practiceCount').value||10,10);
+  let pool=QUESTION_BANK.filter(q=>(sub==='전체'||q.subject===sub)&&(diff==='전체'||q.difficulty===diff));
+  if(mode==='wrong') pool=pool.filter(q=>history[q.id] && history[q.id].lastCorrect===false);
+  if(mode==='unseen') pool=pool.filter(q=>!history[q.id]);
+  practice.questions=sample(pool, Math.min(count,pool.length)).map(q=>({...q, order: shuffle(q.choices.map((c,i)=>({c,i})))})); practice.index=0; practice.answers={}; renderPracticeQuestion();
+}
+function startWrongPractice() { showSection('practice'); document.getElementById('practiceMode').value='wrong'; startPractice(); }
+function renderPracticeQuestion() {
+  const box=document.getElementById('practiceQuestionBox');
+  if(!practice.questions.length) { box.innerHTML='<p class="muted">조건에 맞는 문제가 없습니다. 과목/난이도/출제 방식을 바꿔보세요.</p>'; return; }
+  const q=practice.questions[practice.index]; const selected=practice.answers[q.id]; const checked=selected!==undefined; const ok=checked && selected===q.answer;
+  box.innerHTML = `<div class="question-head"><div><span class="pill">${q.subject}</span><span class="pill">${q.topic}</span><span class="pill">난이도 ${q.difficulty}</span></div><b>${practice.index+1} / ${practice.questions.length}</b></div><div class="q-title">${escapeHtml(q.question)}</div>` +
+  q.order.map((o,idx)=>`<label class="choice ${checked && o.i===q.answer?'correct':''} ${checked && selected===o.i && selected!==q.answer?'wrong':''}"><input type="radio" name="practiceChoice" ${selected===o.i?'checked':''} onchange="answerPractice('${q.id}',${o.i})"><b>${idx+1}.</b><span>${escapeHtml(o.c)}</span></label>`).join('') +
+  (checked ? `<div class="explain"><b>${ok?'정답입니다.':'오답입니다.'}</b><br>정답: ${escapeHtml(q.choices[q.answer])}<br>${escapeHtml(q.explanation)}</div>` : '') +
+  `<div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap"><button class="ghost" onclick="prevPractice()">이전</button><button class="ghost" onclick="nextPractice()">다음</button><button class="primary" onclick="startPractice()">새로 출제</button></div>`;
+}
+function answerPractice(id,ans) { const q=practice.questions.find(x=>x.id===id); practice.answers[id]=ans; const ok=ans===q.answer; history[id]={lastCorrect:ok, attempts:(history[id]?.attempts||0)+1, lastAnswer:ans, updatedAt:new Date().toISOString()}; saveHistory(); renderPracticeQuestion(); }
+function prevPractice() { if(practice.index>0){ practice.index--; renderPracticeQuestion(); } }
+function nextPractice() { if(practice.index<practice.questions.length-1){ practice.index++; renderPracticeQuestion(); } }
+function renderWrong() {
+  const wrong=QUESTION_BANK.filter(q=>history[q.id] && history[q.id].lastCorrect===false); const box=document.getElementById('wrongList');
+  if(!wrong.length) { box.innerHTML='<p class="muted">아직 저장된 오답이 없습니다.</p>'; return; }
+  box.innerHTML=wrong.map((q,i)=>`<div class="review-item"><span class="pill">${q.subject}</span><span class="pill">${q.topic}</span><b style="display:block;margin:8px 0">${i+1}. ${escapeHtml(q.question)}</b><p class="muted">정답: ${escapeHtml(q.choices[q.answer])}</p><p>${escapeHtml(q.explanation)}</p></div>`).join('');
+}
+function clearHistory() { if(confirm('풀이 기록과 오답노트를 모두 삭제할까요?')){ history={}; saveHistory(); renderWrong(); } }
+function detailedExplanation(q) {
+  const answer=q.choices[q.answer];
+  const wrongs=q.choices.map((choice,idx)=>({choice,idx})).filter(x=>x.idx!==q.answer)
+    .map(x=>`<li><b>${escapeHtml(x.choice)}</b> — ${escapeHtml(answer)}이 설명하는 핵심 정의·목적·절차와 일치하지 않습니다. 두 용어의 적용 대상과 결과를 비교해 구분하세요.</li>`).join('');
+  return `<div class="notice" style="margin-top:10px"><b>① 정답 근거</b><p>${escapeHtml(q.explanation)}</p><details open><summary><b>② 오답 분석</b></summary><ul>${wrongs}</ul></details><details open><summary><b>③ 배경지식</b></summary><p><b>${escapeHtml(q.subject)} · ${escapeHtml(q.topic)}</b> 문제는 용어 하나만 외우기보다 개념의 목적, 적용 시점, 유사 개념과의 차이를 표로 비교하면 효과적입니다.</p></details><p><b>④ 암기 점검:</b> 보기를 가리고 “왜 ${escapeHtml(answer)}인가?”를 20초 안에 설명해 보세요.</p></div>`;
+}
+function renderBank() {
+  const kw=(document.getElementById('bankSearch')?.value||'').trim().toLowerCase();
+  const list=QUESTION_BANK.filter(q=>!kw || [q.subject,q.topic,q.question,...q.choices,q.explanation].join(' ').toLowerCase().includes(kw));
+  document.getElementById('bankList').innerHTML = `<p class="muted">검색 결과: ${list.length}문항</p>` + list.map((q,i)=>`<div class="review-item"><span class="pill">${q.subject}</span><span class="pill">${q.topic}</span><span class="pill">${q.difficulty}</span><b style="display:block;margin:8px 0">${i+1}. ${escapeHtml(q.question)}</b><p class="mini">정답: ${escapeHtml(q.choices[q.answer])}</p>${detailedExplanation(q)}</div>`).join('');
+}
+function reviewHtml(q,a,ok,num) { return `<div class="review-item"><span class="pill">${q.subject}</span><span class="pill">${q.topic}</span><b style="display:block;margin:8px 0">${num}. ${escapeHtml(q.question)}</b><p>내 답: <b class="${ok?'result-pass':'result-fail'}">${a===undefined?'미응답':escapeHtml(q.choices[a])}</b></p><p>정답: <b>${escapeHtml(q.choices[q.answer])}</b></p>${detailedExplanation(q)}</div>`; }
+function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+renderBank(); updateTimer();
+</script>
+</body>
+</html>

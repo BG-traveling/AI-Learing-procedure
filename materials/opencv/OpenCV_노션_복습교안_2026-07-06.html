@@ -1,0 +1,123 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenCV 노션 수업 복습교안 2026-07-06</title>
+<style>:root{--b:#07111f;--p:#101827;--c:#172235;--t:#eef6ff;--m:#a9b7ca;--a:#38bdf8;--g:#22c55e;--w:#f59e0b}*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#020617,var(--b));color:var(--t);font-family:Pretendard,"Noto Sans KR",sans-serif;line-height:1.75}header,.wrap{max-width:1120px;margin:auto;padding:28px 20px}header{padding-top:48px}h1{font-size:clamp(32px,6vw,58px);line-height:1.08;margin:10px 0}.muted{color:var(--m)}.tag{display:inline-block;border:1px solid #38bdf866;background:#38bdf81a;color:#bae6fd;border-radius:99px;padding:6px 11px;font-weight:800}.nav{position:sticky;top:0;z-index:5;background:#07111fee;backdrop-filter:blur(12px);border-block:1px solid #ffffff22}.nav>div{max-width:1120px;margin:auto;padding:10px 20px;display:flex;gap:8px;overflow:auto}.nav button{white-space:nowrap;border:1px solid #ffffff22;background:#ffffff0b;color:var(--m);border-radius:99px;padding:8px 12px;cursor:pointer}.nav button:hover{color:white;border-color:var(--a)}section{background:#101827dd;border:1px solid #ffffff1f;border-radius:24px;padding:clamp(20px,4vw,32px);margin-bottom:18px}h2{font-size:28px;margin-top:0;color:#dff6ff}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:var(--c);border:1px solid #ffffff1a;border-radius:16px;padding:16px}.card h3{margin:0 0 6px;color:#bae6fd}.card p{margin:0;color:var(--m)}pre{background:#020617;border:1px solid #ffffff22;border-radius:16px;padding:17px;overflow:auto;color:#dbeafe}.note{border-left:5px solid var(--w);background:#f59e0b12;padding:14px;border-radius:0 14px 14px 0}.good{border-left-color:var(--g);background:#22c55e12}.check{display:block;background:#ffffff08;border:1px solid #ffffff1f;border-radius:12px;padding:10px;margin:7px 0}.check input{accent-color:var(--g)}a{color:#7dd3fc}@media(max-width:750px){.grid{grid-template-columns:1fr}}</style></head>
+<body><header><span class="tag">Notion 개발사전 기반</span><h1>OpenCV 수업 전체 복습</h1><p class="muted">노션 <b>학습내용 → 개발 사전 → OpenCV(2026-07-06)</b> 페이지와 수업 노트북 6개의 흐름을 주제별 교안으로 재구성했습니다.</p></header>
+<nav class="nav"><div><button onclick="go('basic')">1. 이미지 기초</button><button onclick="go('hist')">2. 연산·히스토그램</button><button onclick="go('hsv')">3. HSV·마스크</button><button onclick="go('filter')">4. 필터·모폴로지</button><button onclick="go('transform')">5. 변환</button><button onclick="go('feature')">6. 특징 검출</button><button onclick="go('contour')">7. 윤곽선 검출</button><button onclick="go('practice')">8. 종합 실습</button></div></nav>
+<main class="wrap">
+<section id="basic"><h2>1. 이미지 입출력과 NumPy 배열</h2><div class="grid"><div class="card"><h3>이미지는 숫자 배열</h3><p><code>cv2.imread()</code> 결과는 NumPy 배열입니다. 컬러 shape는 <b>(세로, 가로, 채널)</b>, 일반 dtype은 0~255를 담는 <code>uint8</code>입니다.</p></div><div class="card"><h3>BGR과 RGB</h3><p>OpenCV는 BGR, matplotlib은 RGB 순서입니다. 색이 이상하면 <code>COLOR_BGR2RGB</code> 변환을 먼저 확인합니다.</p></div><div class="card"><h3>Gray와 저장</h3><p>Gray는 채널이 없는 2차원 밝기 배열입니다. <code>imwrite()</code> 반환값이 True인지 확인해야 실제 저장 성공을 알 수 있습니다.</p></div><div class="card"><h3>원본 보존</h3><p>배열에 직접 선이나 도형을 그리면 원본이 바뀝니다. 결과 표시 전 <code>original=image.copy()</code>를 사용합니다.</p></div></div><pre>import cv2
+image = cv2.imread("sample.jpg")
+if image is None:
+    raise FileNotFoundError("경로와 파일명을 확인하세요")
+print(image.ndim, image.shape, image.dtype)
+rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+ok = cv2.imwrite("gray.jpg", gray)</pre><div class="note"><b>순서 함정:</b> <code>shape</code>은 (세로, 가로, 채널)이지만 <code>resize</code>의 dsize는 (가로, 세로)입니다.</div></section>
+<section id="hist"><h2>2. 밝기·대비·논리연산·히스토그램</h2><div class="grid"><div class="card"><h3>포화 연산</h3><p><code>cv2.add/subtract</code>는 0~255를 넘는 값을 안전하게 제한합니다. uint8에 일반 NumPy 연산을 하면 값이 순환할 수 있습니다.</p></div><div class="card"><h3>AND·OR·XOR·NOT</h3><p>AND는 겹친 영역, OR은 합집합, XOR은 겹치지 않은 영역, NOT은 픽셀을 반전합니다. 마스크 적용의 기초입니다.</p></div><div class="card"><h3>채널 분리</h3><p><code>b,g,r=cv2.split(image)</code>의 각 결과는 해당 색 성분 강도를 나타내는 2차원 배열입니다.</p></div><div class="card"><h3>히스토그램</h3><p>0~255 밝기별 픽셀 개수를 셉니다. 한쪽에 몰린 분포는 <code>equalizeHist</code>로 대비를 넓힐 수 있습니다.</p></div></div><pre>bright = cv2.add(image, 100)
+dark = cv2.subtract(image, 100)
+hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
+equalized = cv2.equalizeHist(gray)</pre><p class="note good"><b>평활화 주의:</b> 기본 <code>equalizeHist()</code>는 단일 채널 Gray 이미지에 적용합니다. 컬러 대비는 밝기 채널만 분리하는 방법을 고려합니다.</p></section>
+<section id="hsv"><h2>3. HSV 색공간과 특정 색상 마스크</h2><p>HSV는 색상(H), 채도(S), 밝기(V)를 분리하므로 조명 변화가 있는 색상 분할에서 RGB보다 범위를 조절하기 쉽습니다. OpenCV의 H는 0~180 범위입니다.</p><pre>hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+lower_blue = np.array([90, 50, 50])
+upper_blue = np.array([130, 255, 255])
+mask = cv2.inRange(hsv, lower_blue, upper_blue)
+result = cv2.bitwise_and(image, image, mask=mask)</pre><div class="grid"><div class="card"><h3>mask</h3><p>범위 안은 255, 밖은 0인 단일 채널 선택 지도입니다.</p></div><div class="card"><h3>result</h3><p>mask가 255인 위치의 원본 픽셀만 남긴 컬러 영상입니다.</p></div></div><div class="note"><b>빨간색은 두 범위:</b> Hue 원형 축의 시작과 끝에 걸치므로 대략 0~20과 170~180을 각각 마스크로 만든 뒤 OR로 합칩니다.</div></section>
+<section id="filter"><h2>4. 블러·이진화·모폴로지</h2><div class="grid"><div class="card"><h3>평균·Gaussian·Median</h3><p>평균은 주변 평균, Gaussian은 가까운 픽셀에 큰 가중치, Median은 중앙값을 사용해 소금-후추 노이즈에 강합니다.</p></div><div class="card"><h3>Threshold</h3><p>기준보다 크면 255, 아니면 0으로 분리합니다. 조명이 불균일하면 주변별 기준을 쓰는 adaptiveThreshold가 유리합니다.</p></div><div class="card"><h3>침식·팽창</h3><p>침식은 흰 영역을 깎고 팽창은 부풉니다. kernel 크기와 iterations가 효과 강도를 결정합니다.</p></div><div class="card"><h3>Opening·Closing</h3><p>Opening=침식→팽창으로 작은 흰 노이즈 제거, Closing=팽창→침식으로 작은 구멍과 끊김 보정입니다.</p></div></div><pre>gaussian = cv2.GaussianBlur(gray, (7, 7), 0)
+adaptive = cv2.adaptiveThreshold(
+    gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+    cv2.THRESH_BINARY, 11, 5)
+kernel = np.ones((3, 3), np.uint8)
+opening = cv2.morphologyEx(adaptive, cv2.MORPH_OPEN, kernel)</pre></section>
+<section id="transform"><h2>5. 크기·회전·Affine·Perspective</h2><div class="grid"><div class="card"><h3>Resize와 보간</h3><p><code>resize(image,(width,height))</code>를 사용합니다. INTER_NEAREST는 빠르지만 확대 시 계단 현상이 생깁니다.</p></div><div class="card"><h3>배열 Crop</h3><p><code>image[y1:y2,x1:x2]</code>처럼 세로 좌표를 먼저 씁니다.</p></div><div class="card"><h3>Affine</h3><p>2×3 행렬로 이동·회전·크기·기울이기를 표현하며 직선과 평행성을 유지합니다.</p></div><div class="card"><h3>Perspective</h3><p>네 점 대응으로 비스듬한 문서나 카드를 정면 사각형으로 보정합니다.</p></div></div><pre>h, w = image.shape[:2]
+matrix = cv2.getRotationMatrix2D((w/2, h/2), 30, 1)
+rotated = cv2.warpAffine(image, matrix, (w, h))
+P = cv2.getPerspectiveTransform(src_points, dst_points)
+front = cv2.warpPerspective(image, P, (out_width, out_height))</pre></section>
+<section id="feature"><h2>6. 이진화와 특징 검출</h2><div class="grid"><div class="card"><h3>Sobel·Canny</h3><p>Sobel은 x/y 밝기 변화량을 구합니다. Canny는 노이즈 제거, 그래디언트, 비최대 억제, 이중 임계값으로 얇고 안정적인 엣지를 만듭니다.</p></div><div class="card"><h3>Harris Corner</h3><p>여러 방향으로 밝기 변화가 큰 지점을 코너로 판단합니다. 입력을 float32로 바꾸고 반응값을 정규화합니다.</p></div><div class="card"><h3>Hough Circle·Line</h3><p>엣지 점을 파라미터 공간에 투표해 원과 직선을 찾습니다. threshold, 최소 거리·길이·간격이 검출 결과를 좌우합니다.</p></div><div class="card"><h3>Contour</h3><p>이진 영상에서 연결된 경계를 찾습니다. RETR_EXTERNAL/LIST/TREE는 계층 검색 방식, CHAIN_APPROX_SIMPLE은 저장 좌표를 줄입니다.</p></div></div><pre>edges = cv2.Canny(gray, 50, 150)
+harris = cv2.cornerHarris(np.float32(gray), 2, 3, 0.04)
+lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100,
+                        minLineLength=10, maxLineGap=10)
+contours, hierarchy = cv2.findContours(
+    binary, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+cv2.drawContours(original, contours, -1, (0,255,0), 2)</pre><div class="note"><b>버전 차이:</b> <code>findContours()</code>의 반환값 개수는 OpenCV 버전에 따라 다를 수 있으므로 설치 버전의 문서를 확인합니다.</div></section>
+<section id="contour"><h2>7. OpenCV 윤곽선(Contour) 검출</h2>
+<p><b>윤곽선</b>은 같은 색이나 밝기를 가진 물체의 경계를 따라 이어진 점들의 집합입니다. 물체 개수 세기, 불량품 크기 검사, 도형 인식, 문서·동전·세포 영역 측정 등에 활용합니다. <code>findContours()</code>에는 일반 컬러 사진이 아니라 <b>검출할 물체가 흰색(255), 배경이 검은색(0)인 단일 채널 이진 영상</b>을 넣는 것이 핵심입니다.</p>
+<div class="note good"><b>전체 흐름:</b> 이미지 읽기 → Gray 변환 → 블러로 노이즈 완화 → 이진화 또는 Canny → 모폴로지로 경계 보정 → 윤곽선 검색 → 면적·형태 필터링 → 원본 복사본에 시각화</div>
+<h3>1) 가장 많이 사용하는 실전 코드</h3>
+<pre>import cv2
+import numpy as np
+
+image = cv2.imread("objects.jpg")
+if image is None:
+    raise FileNotFoundError("이미지 경로를 확인하세요.")
+
+# ① 전처리: 윤곽선 입력은 단일 채널 이진 영상으로 만든다.
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+_, binary = cv2.threshold(
+    blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+# 흰 물체 안의 작은 구멍이나 끊어진 부분을 연결한다.
+kernel = np.ones((3, 3), np.uint8)
+binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+
+# ② 바깥쪽 윤곽선만 찾고, 직선 구간의 중복 좌표는 줄인다.
+contours, hierarchy = cv2.findContours(
+    binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+# ③ 작은 노이즈를 제외하고 특징을 계산한다.
+result = image.copy()
+valid_count = 0
+for contour in contours:
+    area = cv2.contourArea(contour)
+    if area &lt; 500:
+        continue
+
+    valid_count += 1
+    perimeter = cv2.arcLength(contour, True)
+    x, y, w, h = cv2.boundingRect(contour)
+
+    moments = cv2.moments(contour)
+    if moments["m00"] != 0:
+        cx = int(moments["m10"] / moments["m00"])
+        cy = int(moments["m01"] / moments["m00"])
+        cv2.circle(result, (cx, cy), 4, (0, 0, 255), -1)
+
+    cv2.drawContours(result, [contour], -1, (0, 255, 0), 2)
+    cv2.rectangle(result, (x, y), (x + w, y + h), (255, 0, 0), 2)
+    cv2.putText(result, f"A:{area:.0f} P:{perimeter:.0f}",
+                (x, max(y - 8, 15)), cv2.FONT_HERSHEY_SIMPLEX,
+                0.45, (255, 255, 255), 1)
+
+print("유효 물체 수:", valid_count)
+cv2.imwrite("contour_result.jpg", result)</pre>
+<div class="grid"><div class="card"><h3>왜 Otsu 이진화인가?</h3><p>히스토그램을 보고 임계값을 자동 결정합니다. 조명이 매우 불균일하면 <code>adaptiveThreshold()</code>, 이미 경계선 자체가 필요하면 <code>Canny()</code>를 비교해 봅니다.</p></div><div class="card"><h3>물체가 검은색이라면?</h3><p><code>THRESH_BINARY_INV</code>로 반전합니다. 검은 물체를 그대로 넣으면 배경의 바깥 테두리를 물체로 잘못 찾기 쉽습니다.</p></div><div class="card"><h3>왜 면적을 거르는가?</h3><p>먼지와 잡음도 하나의 윤곽선이 됩니다. <code>contourArea()</code>의 최소·최대 범위를 정하면 관심 물체만 남길 수 있습니다.</p></div><div class="card"><h3>왜 copy()를 쓰는가?</h3><p><code>drawContours()</code>, <code>rectangle()</code>은 전달한 배열을 직접 변경합니다. 원본과 전처리 결과를 비교하려면 복사본에 그립니다.</p></div></div>
+<h3>2) 검색 모드: 어떤 윤곽선을 가져올까?</h3>
+<div class="grid"><div class="card"><h3>RETR_EXTERNAL</h3><p>가장 바깥 윤곽선만 반환합니다. 서로 떨어진 물체 수를 세거나 외형만 검사할 때 가장 단순하고 빠릅니다.</p></div><div class="card"><h3>RETR_LIST</h3><p>안쪽과 바깥쪽 윤곽선을 모두 반환하지만 부모·자식 관계를 구성하지 않습니다.</p></div><div class="card"><h3>RETR_TREE</h3><p>모든 윤곽선을 찾고 중첩된 부모·자식 관계를 완전한 트리로 기록합니다. 글자 구멍이나 도넛 구조 분석에 적합합니다.</p></div><div class="card"><h3>RETR_CCOMP</h3><p>바깥 경계와 내부 구멍을 2단계 계층으로 구성합니다. 채워진 영역과 구멍을 구분할 때 유용합니다.</p></div></div>
+<p><code>hierarchy[0][i]</code>의 네 값은 차례로 <b>[다음 윤곽선, 이전 윤곽선, 첫 번째 자식, 부모]</b>의 인덱스이며, 해당 관계가 없으면 -1입니다.</p>
+<h3>3) 좌표 저장 방식과 주요 특징값</h3>
+<div class="grid"><div class="card"><h3>CHAIN_APPROX_SIMPLE</h3><p>직선 위의 중간 점을 생략하고 꼭 필요한 끝점 중심으로 저장합니다. 일반적인 검출에는 이 방식을 권장합니다.</p></div><div class="card"><h3>CHAIN_APPROX_NONE</h3><p>경계의 모든 점을 저장합니다. 세밀한 좌표가 꼭 필요한 경우에만 사용하며 메모리 사용량이 큽니다.</p></div><div class="card"><h3>크기·위치</h3><p><code>contourArea</code>는 면적, <code>arcLength(cnt, True)</code>는 닫힌 경계의 둘레, <code>boundingRect</code>는 축에 평행한 사각형을 구합니다.</p></div><div class="card"><h3>형태 분석</h3><p><code>approxPolyDP</code>는 다각형 단순화, <code>convexHull</code>은 볼록 껍질, <code>minAreaRect</code>는 회전된 최소 사각형을 구합니다.</p></div></div>
+<pre># 꼭짓점을 단순화한다. epsilon이 클수록 점이 더 많이 줄어든다.
+epsilon = 0.02 * cv2.arcLength(contour, True)
+polygon = cv2.approxPolyDP(contour, epsilon, True)
+
+# 예: 삼각형·사각형처럼 꼭짓점 수를 이용한 기초 분류
+vertices = len(polygon)
+if vertices == 3:
+    shape_name = "triangle"
+elif vertices == 4:
+    shape_name = "quadrilateral"
+else:
+    shape_name = "circle or other"</pre>
+<h3>4) 결과가 이상할 때 확인할 것</h3>
+<ul><li><b>윤곽선이 너무 많음:</b> Gaussian/Median 블러, Opening, 최소 면적 필터를 차례로 적용합니다.</li><li><b>하나의 물체가 여러 조각으로 나뉨:</b> Closing 또는 팽창으로 끊어진 흰 영역을 연결합니다.</li><li><b>서로 다른 물체가 하나로 합쳐짐:</b> 팽창 강도를 낮추고, 이진화 임계값과 조명을 다시 조정합니다.</li><li><b>안쪽 구멍을 찾지 못함:</b> <code>RETR_EXTERNAL</code> 대신 <code>RETR_TREE</code> 또는 <code>RETR_CCOMP</code>를 사용합니다.</li><li><b>중심점 계산 오류:</b> 면적 모멘트 <code>m00</code>이 0인지 확인한 뒤 나눗셈을 수행합니다.</li><li><b>좌표가 뒤바뀜:</b> OpenCV 점은 (x, y), NumPy 슬라이싱은 <code>array[y, x]</code> 순서입니다.</li></ul>
+<div class="note"><b>스스로 확인하기:</b> (1) 흰 물체가 아닌 영상을 넣으면 왜 문제가 생길까요? (2) 동전의 바깥 테두리만 셀 때 적절한 검색 모드는 무엇일까요? (3) 작은 점 잡음을 제거할 가장 간단한 두 방법은 무엇일까요?<br><b>정답:</b> (1) 배경을 물체로 인식할 수 있어서, (2) <code>RETR_EXTERNAL</code>, (3) Opening과 최소 면적 필터입니다.</div>
+<p class="muted">공식 참고 자료: <a href="https://docs.opencv.org/4.x/d4/d73/tutorial_py_contours_begin.html" target="_blank" rel="noopener">Contours 시작하기</a> · <a href="https://docs.opencv.org/4.x/dd/d49/tutorial_py_contour_features.html" target="_blank" rel="noopener">Contour 특징값</a> · <a href="https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html" target="_blank" rel="noopener">Contour 계층 구조</a></p>
+</section>
+<section id="practice"><h2>8. 노션 수업 종합 복습 실습</h2><p>아래 순서로 한 이미지에 대해 전체 파이프라인을 직접 작성하세요. 체크 상태는 브라우저에 저장됩니다.</p><div id="checks"></div><h3>수업 노트에서 발견한 실행 주의점</h3><ul><li>노트북의 <code>SSimport os</code>는 오타이며 <code>import os</code>로 수정해야 합니다.</li><li>Colab의 <code>cv2_imshow</code>와 로컬 환경의 <code>cv2.imshow</code>는 사용법이 다릅니다.</li><li>임계값과 HSV 범위는 이미지·조명마다 달라지므로 결과를 시각화하며 조정합니다.</li></ul><p class="muted">노션 원본: <a href="https://app.notion.com/p/395ef438c6968111aa15d2d5523c512a" target="_blank" rel="noopener">OpenCV(2026-07-06)</a></p></section>
+</main><script>
+const tasks=["이미지 읽기 후 None·shape·dtype 확인","BGR→RGB와 Gray 출력","밝기 연산과 히스토그램 비교","HSV 특정 색상 마스크 생성","세 가지 블러 결과 비교","Threshold와 adaptiveThreshold 비교","침식·팽창·Opening·Closing 비교","Resize·회전·Affine·Perspective 적용","Sobel·Canny 엣지 비교","Harris 코너 표시","Hough 원·직선 검출","Contour 검출과 면적 필터링","RETR_EXTERNAL과 RETR_TREE 결과 비교","윤곽선 중심점·면적·둘레·바운딩 박스 표시","approxPolyDP로 삼각형·사각형 기초 분류"];
+const key="opencv-notion-20260706-progress";let saved=JSON.parse(localStorage.getItem(key)||"{}");
+function go(id){document.getElementById(id).scrollIntoView({behavior:"smooth",block:"start"})}
+function render(){checks.innerHTML=tasks.map((t,i)=>`<label class="check"><input type="checkbox" ${saved[i]?"checked":""} onchange="save(${i},this.checked)"> ${i+1}. ${t}</label>`).join("")}
+function save(i,v){saved[i]=v;localStorage.setItem(key,JSON.stringify(saved))}
+render();
+</script></body></html>

@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>랜덤 문제 반복 학습기</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --good: #057a55;
+      --bad: #c2410c;
+      --soft-good: #ecfdf5;
+      --soft-bad: #fff7ed;
+      --soft-blue: #eef2ff;
+      --shadow: 0 16px 40px rgba(15, 23, 42, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard, "Noto Sans KR", Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 42%, #f5f7fb 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1050px; margin: 0 auto; padding: 28px 18px 48px; }
+    header { margin-bottom: 18px; }
+    h1 { margin: 0 0 8px; font-size: clamp(26px, 4vw, 42px); letter-spacing: -0.04em; }
+    .desc { color: var(--muted); line-height: 1.6; margin: 0; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 900px) { .grid { grid-template-columns: 280px 1fr; align-items: start; } }
+    .card { background: rgba(255,255,255,.9); border: 1px solid rgba(229,231,235,.95); border-radius: 22px; box-shadow: var(--shadow); }
+    .panel { padding: 18px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+    .stat { background: #f8fafc; border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+    .stat b { display:block; font-size: 24px; }
+    .stat span { color: var(--muted); font-size: 13px; }
+    label { display: block; font-weight: 700; font-size: 13px; margin: 14px 0 6px; }
+    select, input[type="text"] { width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 12px 13px; font-size: 15px; background: #fff; color: var(--text); }
+    .checkline { display:flex; gap: 9px; align-items:center; margin: 12px 0; color: var(--text); font-size: 14px; }
+    .btns { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
+    button { border: 0; border-radius: 14px; padding: 12px 15px; cursor: pointer; font-weight: 800; font-size: 14px; transition: .15s transform, .15s opacity, .15s background; }
+    button:hover { transform: translateY(-1px); }
+    .primary { background: var(--primary); color: #fff; }
+    .primary:hover { background: var(--primary-dark); }
+    .secondary { background: #eef2ff; color: #3730a3; }
+    .ghost { background: #f3f4f6; color: #374151; }
+    .danger { background: #fff7ed; color: var(--bad); }
+    .quiz { padding: clamp(18px, 4vw, 34px); }
+    .meta { display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 16px; }
+    .tag { background: var(--soft-blue); color:#3730a3; border-radius: 999px; padding: 7px 10px; font-size: 12px; font-weight: 800; }
+    .qno { color: var(--muted); font-size: 14px; font-weight: 700; }
+    .question { white-space: pre-wrap; line-height: 1.65; font-size: clamp(19px, 2.7vw, 27px); font-weight: 850; letter-spacing: -0.025em; margin: 10px 0 20px; }
+    .options { display: grid; gap: 10px; }
+    .option {
+      width: 100%; text-align: left; background: #fff; color: var(--text); border: 1px solid var(--line);
+      border-radius: 16px; padding: 15px 15px; display:flex; gap: 12px; align-items:flex-start; font-weight: 650; line-height: 1.45;
+    }
+    .option .badge { width: 28px; height: 28px; flex:0 0 28px; border-radius:50%; background:#f3f4f6; color:#4b5563; display:flex; align-items:center; justify-content:center; font-size: 13px; font-weight:900; }
+    .option.selected { outline: 3px solid rgba(79,70,229,.18); border-color: var(--primary); background: #fafaff; }
+    .option.correct { border-color: #34d399; background: var(--soft-good); }
+    .option.wrong { border-color: #fdba74; background: var(--soft-bad); }
+    .answerbox { margin-top: 14px; }
+    .result { margin-top: 18px; border-radius: 18px; padding: 16px; line-height: 1.65; display:none; }
+    .result.good { display:block; background: var(--soft-good); border: 1px solid #a7f3d0; color: var(--good); }
+    .result.bad { display:block; background: var(--soft-bad); border: 1px solid #fed7aa; color: var(--bad); }
+    .result.neutral { display:block; background: #f8fafc; border: 1px solid var(--line); color: #475569; }
+    .small { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .list { margin-top: 16px; padding: 0; list-style: none; display:grid; gap:10px; max-height: 320px; overflow:auto; }
+    .list li { border:1px solid var(--line); border-radius:14px; padding:12px; background:#fff; }
+    .list button { padding: 7px 10px; margin-top: 7px; font-size: 12px; }
+    .footer-note { margin-top: 18px; color: var(--muted); font-size: 13px; line-height:1.6; }
+    code { background:#f3f4f6; border-radius:6px; padding:2px 5px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>랜덤 문제 반복 학습기</h1>
+      <p class="desc">6월 29일 · 6월 30일 · 7월 1일 문제를 합쳐서 랜덤으로 출제합니다. 객관식은 자동 채점, 주관식은 대표 정답과 유사 답안을 기준으로 채점합니다.</p>
+    </header>
+
+    <div class="grid">
+      <aside class="card panel">
+        <h2 style="margin:0 0 10px; font-size:19px;">학습 설정</h2>
+        <div class="stat-grid">
+          <div class="stat"><b id="totalCount">60</b><span>전체 문제</span></div>
+          <div class="stat"><b id="scoreRate">0%</b><span>정답률</span></div>
+          <div class="stat"><b id="solvedCount">0</b><span>푼 문제</span></div>
+          <div class="stat"><b id="wrongCount">0</b><span>오답 수</span></div>
+        </div>
+
+        <label for="sourceFilter">출제 범위</label>
+        <select id="sourceFilter">
+          <option value="all">전체 날짜</option>
+          <option value="6월 29일">6월 29일 문제</option>
+          <option value="6월 30일">6월 30일 문제</option>
+          <option value="7월 1일">7월 1일 문제</option>
+        </select>
+
+        <label for="modeFilter">출제 모드</label>
+        <select id="modeFilter">
+          <option value="all">전체 문제 랜덤</option>
+          <option value="unsolved">아직 안 푼 문제</option>
+          <option value="wrong">틀린 문제만</option>
+        </select>
+
+        <div class="checkline"><input type="checkbox" id="shuffleOptions" checked /> <span>객관식 보기 순서도 섞기</span></div>
+        <div class="checkline"><input type="checkbox" id="autoNext" /> <span>정답 확인 후 자동으로 다음 문제 이동</span></div>
+
+        <div class="btns">
+          <button class="primary" id="nextBtn">랜덤 문제 출제</button>
+          <button class="ghost" id="resetBtn">기록 초기화</button>
+        </div>
+        <p class="footer-note">기록은 이 브라우저에 저장됩니다. 파일을 다른 브라우저에서 열면 기록은 따로 관리됩니다.</p>
+      </aside>
+
+      <main class="card quiz">
+        <div class="meta" id="meta"></div>
+        <div class="qno" id="qno">문제를 시작하려면 [랜덤 문제 출제]를 누르세요.</div>
+        <div class="question" id="question">반복해서 풀면서 개념을 외울 수 있도록 만들었습니다.</div>
+        <div id="options" class="options"></div>
+        <div id="textAnswer" class="answerbox" style="display:none;">
+          <input type="text" id="answerInput" placeholder="정답을 입력하세요" />
+        </div>
+        <div class="btns">
+          <button class="primary" id="checkBtn">정답 확인</button>
+          <button class="secondary" id="showAnswerBtn">정답 보기</button>
+          <button class="ghost" id="againBtn">다른 문제</button>
+        </div>
+        <div id="result" class="result"></div>
+
+        <section style="margin-top:28px;">
+          <h2 style="font-size:18px; margin:0 0 8px;">오답 노트</h2>
+          <p class="small">틀린 문제는 여기에 쌓입니다. [틀린 문제만] 모드로 다시 반복할 수 있습니다.</p>
+          <ul class="list" id="wrongList"></ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const QUESTIONS = [
+  {
+    "id": "6월 29일-1",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 1,
+    "type": "choice",
+    "question": "1.  판다스에서 CSV 파일을 읽어오는 올바른 코드는?",
+    "options": [
+      "pd.load_csv('data.csv')",
+      "pd.read_csv('data.csv')",
+      "pd.open('data.csv')",
+      "pd.import('data.csv')"
+    ],
+    "answer": "pd.read_csv('data.csv')",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-2",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 2,
+    "type": "choice",
+    "question": "2.  다음 중 분류(Classification) 문제에 해당하는 것은?",
+    "options": [
+      "집 가격 예측",
+      "꽃 품종(setosa/versicolor/virginica) 분류",
+      "주가 예측",
+      "매출액 예측"
+    ],
+    "answer": "꽃 품종(setosa/versicolor/virginica) 분류",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-3",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 3,
+    "type": "choice",
+    "question": "3.  머신러닝에서 fit() 함수의 역할은?",
+    "options": [
+      "데이터를 불러온다",
+      "모델을 훈련(학습)시킨다",
+      "새로운 데이터를 예측한다",
+      "모델의 성능을 평가한다"
+    ],
+    "answer": "모델을 훈련(학습)시킨다",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-4",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 4,
+    "type": "choice",
+    "question": "4.  다음 함수의 반환값은?\n\ndef multiply(a, b):\n    return a * b\n\nresult = multiply(3, 4)\nprint(result)",
+    "options": [
+      "34",
+      "7",
+      "12",
+      "None"
+    ],
+    "answer": "12",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-5",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 5,
+    "type": "choice",
+    "question": "5.  아래 판다스 코드의 기능으로 올바른 것은?\n\ndf.groupby('continent')['lifeExp'].mean()",
+    "options": [
+      "continent 열의 고유값 개수를 반환한다",
+      "continent별 lifeExp의 평균을 계산한다",
+      "lifeExp를 continent 순서로 정렬한다",
+      "continent와 lifeExp 두 열만 추출한다"
+    ],
+    "answer": "continent별 lifeExp의 평균을 계산한다",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-6",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 6,
+    "type": "choice",
+    "question": "6.  다음 중 회귀(Regression) 평가 지표가 아닌 것은?",
+    "options": [
+      "MAE (Mean Absolute Error)",
+      "MSE (Mean Squared Error)",
+      "R² Score",
+      "Accuracy Score"
+    ],
+    "answer": "Accuracy Score",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-7",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 7,
+    "type": "choice",
+    "question": "7.  K-Means 군집화에서 엘보우(Elbow) 그래프를 사용하는 이유는?",
+    "options": [
+      "군집 내 실루엣 계수를 높이기 위해",
+      "적절한 군집(K) 개수를 찾기 위해",
+      "이상치를 제거하기 위해",
+      "차원을 축소하기 위해"
+    ],
+    "answer": "적절한 군집(K) 개수를 찾기 위해",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-8",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 8,
+    "type": "choice",
+    "question": "8.  다음 중 변경 불가능(immutable) 한 자료형은?",
+    "options": [
+      "리스트(list)",
+      "딕셔너리(dict)",
+      "튜플(tuple)",
+      "셋(set)"
+    ],
+    "answer": "튜플(tuple)",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-9",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 9,
+    "type": "choice",
+    "question": "9.  라벨 인코딩(Label Encoding)의 단점으로 가장 적절한 것은?",
+    "options": [
+      "열의 수가 지나치게 늘어난다",
+      "우열이 없는 데이터에 숫자 크기로 순서가 생겨버릴 수 있다",
+      "변환 속도가 너무 느리다",
+      "결측치를 처리하지 못한다"
+    ],
+    "answer": "우열이 없는 데이터에 숫자 크기로 순서가 생겨버릴 수 있다",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-10",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 10,
+    "type": "choice",
+    "question": "10.  다음 코드에서 apply()가 하는 역할은?\n\ndef add_str(x):\n    return str(x) + '년'\n\ndf['year'] = df['year'].apply(add_str)",
+    "options": [
+      "year 열의 결측치를 제거한다",
+      "year 열의 각 행에 add_str 함수를 적용한다",
+      "year 열을 기준으로 데이터를 정렬한다",
+      "year 열을 삭제한다"
+    ],
+    "answer": "year 열의 각 행에 add_str 함수를 적용한다",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-11",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 11,
+    "type": "choice",
+    "question": "11.  아래 코드에서 loc과 iloc의 차이를 설명한 것으로 옳은 것은?",
+    "options": [
+      "A와 B는 항상 다른 결과를 반환한다",
+      "loc은 행/열 이름으로, iloc은 숫자 위치(정수 인덱스) 로 접근한다",
+      "loc은 열에만, iloc은 행에만 사용한다",
+      "두 코드의 기능은 완전히 동일하다"
+    ],
+    "answer": "loc은 행/열 이름으로, iloc은 숫자 위치(정수 인덱스) 로 접근한다",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-12",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 12,
+    "type": "choice",
+    "question": "12.   다음 중 df.describe()로 확인할 수 없는 정보는?",
+    "options": [
+      "평균(mean)",
+      "표준편차(std)",
+      "결측치 개수",
+      "최솟값(min), 최댓값(max)"
+    ],
+    "answer": "결측치 개수",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-13",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 13,
+    "type": "choice",
+    "question": "13.  아래 코드에서 concat의 axis=1이 의미하는 것은?",
+    "options": [
+      "X와 Y를 위아래(행 방향)로 이어 붙인다",
+      "X와 Y를 좌우(열 방향)로 이어 붙인다",
+      "X와 Y의 공통된 행만 남긴다",
+      "X와 Y에서 중복된 열을 제거한다"
+    ],
+    "answer": "X와 Y를 좌우(열 방향)로 이어 붙인다",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-14",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 14,
+    "type": "choice",
+    "question": "14.  r2_score가 0에 가까울수록 의미하는 것은?",
+    "options": [
+      "모델이 데이터를 거의 완벽하게 설명한다",
+      "모델이 데이터를 거의 설명하지 못한다",
+      "예측값과 실제값이 정확히 일치한다",
+      "과적합이 발생했음을 의미한다"
+    ],
+    "answer": "모델이 데이터를 거의 설명하지 못한다",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-15",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 15,
+    "type": "choice",
+    "question": "15.  다음 코드의 출력 결과는? \n\nfor i in range(5):\n    if i == 3:\n        break\n    print(i)",
+    "options": [
+      "0 1 2 3 4",
+      "0 1 2 3",
+      "0 1 2",
+      "1 2 3"
+    ],
+    "answer": "0 1 2",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-16",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 16,
+    "type": "choice",
+    "question": "16.  다음 중 셋(set)의 특징으로 옳지 않은 것은?\n\nS = {1, 2, 2, 3, 3, 3}\nprint(S)",
+    "options": [
+      "중복된 값이 자동으로 제거된다",
+      "출력 결과는 {1, 2, 3}이다",
+      "인덱싱(S[0])으로 특정 원소에 접근할 수 있다",
+      "S.add(4)로 원소를 추가할 수 있다"
+    ],
+    "answer": "인덱싱(S[0])으로 특정 원소에 접근할 수 있다",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-17",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 17,
+    "type": "choice",
+    "question": "17.  아래 코드로 그릴 수 있는 그래프 형태는?  \n\nimport matplotlib.pyplot as plt\n\nplt.scatter(x, y, c=labels)\nplt.show()",
+    "options": [
+      "데이터 포인트를 점으로 표시하는 산점도",
+      "데이터의 분포를 막대로 표시하는 히스토그램",
+      "시간 흐름에 따른 변화를 보여주는 선 그래프",
+      "카테고리별 비율을 보여주는 파이 차트"
+    ],
+    "answer": "데이터 포인트를 점으로 표시하는 산점도",
+    "aliases": []
+  },
+  {
+    "id": "6월 29일-18",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 18,
+    "type": "text",
+    "question": "18.  머신러닝에서 모델이 훈련 데이터에 지나치게 맞춰져, 새로운 데이터에 대한 예측 성능이 크게 떨어지는 현상을 무엇이라고 하는가?",
+    "options": [],
+    "answer": "과적합",
+    "aliases": [
+      "과적합",
+      "오버피팅",
+      "overfitting",
+      "over fitting"
+    ]
+  },
+  {
+    "id": "6월 29일-19",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 19,
+    "type": "text",
+    "question": "19.  군집화(Clustering) 알고리즘에서 사용하는 평가 지표로, -1부터 1 사이의 값을 가지며 1에 가까울수록 군집이 잘 형성되었음을 의미하는 것은 무엇인가?",
+    "options": [],
+    "answer": "실루엣 계수",
+    "aliases": [
+      "실루엣 계수",
+      "실루엣점수",
+      "실루엣 점수",
+      "silhouette score",
+      "silhouette coefficient",
+      "실루엣",
+      "실루엣 스코어"
+    ]
+  },
+  {
+    "id": "6월 29일-20",
+    "source": "6월 29일 문제",
+    "sourceDate": "6월 29일",
+    "number": 20,
+    "type": "text",
+    "question": "20. 머신러닝에서 '라벨이 있는' 학습을 뭐라고 하는가?",
+    "options": [],
+    "answer": "지도 학습",
+    "aliases": [
+      "지도학습",
+      "지도 학습",
+      "supervised learning",
+      "supervised"
+    ]
+  },
+  {
+    "id": "6월 30일-1",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 1,
+    "type": "choice",
+    "question": "1.  다음 중 [x*2 for x in range(3)] 코드의 결과로 올바른 것은?",
+    "options": [
+      "[0, 1, 2]",
+      "[2, 4, 6]",
+      "[0, 2, 4]",
+      "[1, 2, 3]"
+    ],
+    "answer": "[0, 2, 4]",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-2",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 2,
+    "type": "choice",
+    "question": "2.  파이썬에서 에러가 발생해도 프로그램이 강제로 종료되지 않도록 예외를 처리하는 구문은?",
+    "options": [
+      "if - else",
+      "try - except",
+      "switch - case",
+      "break - continue"
+    ],
+    "answer": "try - except",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-3",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 3,
+    "type": "choice",
+    "question": "3.  판다스에서 데이터프레임의 결측치(NaN)를 특정 값으로 채우기 위해 사용하는 메서드는?",
+    "options": [
+      "dropna()",
+      "fillna()",
+      "replace()",
+      "isnull()"
+    ],
+    "answer": "fillna()",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-4",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 4,
+    "type": "choice",
+    "question": "4.  데이터프레임의 총 행/열 개수, 각 열의 데이터 타입, 결측치 존재 여부를 한눈에 요약해서 보여주는 메서드는?",
+    "options": [
+      "describe()",
+      "head()",
+      "info()",
+      "shape()"
+    ],
+    "answer": "info()",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-5",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 5,
+    "type": "choice",
+    "question": "5.  범주형 데이터를 처리할 때, 각 카테고리를 고유한 새로운 열로 만들고 0과 1로만 표현하는 인코딩 방식은?",
+    "options": [
+      "라벨 인코딩 (Label Encoding)",
+      "원-핫 인코딩 (One-Hot Encoding)",
+      "타겟 인코딩 (Target Encoding)",
+      "스탠다드 스케일링 (Standard Scaling)"
+    ],
+    "answer": "원-핫 인코딩 (One-Hot Encoding)",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-6",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 6,
+    "type": "choice",
+    "question": "6.  모델이 새로운 데이터에 대해 얼마나 잘 예측하는지 최종적으로 평가하기 위해, 학습에 전혀 사용하지 않고 따로 떼어두는 데이터는?",
+    "options": [
+      "학습 데이터 (Train Data)",
+      "검증 데이터 (Validation Data)",
+      "테스트 데이터 (Test Data)",
+      "라벨 데이터 (Label Data)"
+    ],
+    "answer": "테스트 데이터 (Test Data)",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-7",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 7,
+    "type": "choice",
+    "question": "7.  모델이 너무 단순하여 훈련 데이터의 규칙이나 패턴조차 제대로 학습하지 못한 상태를 뜻하는 용어는?",
+    "options": [
+      "과적합 (Overfitting)",
+      "과소적합 (Underfitting)",
+      "편향 (Bias)",
+      "분산 (Variance)"
+    ],
+    "answer": "과소적합 (Underfitting)",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-8",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 8,
+    "type": "choice",
+    "question": "8.  데이터를 K개의 부분집합(Fold)으로 나누어, 번갈아 가며 학습과 검증을 수행함으로써 모델 평가의 신뢰성을 높이는 방법은?",
+    "options": [
+      "K-Means 클러스터링",
+      "K-Fold 교차 검증 (Cross Validation)",
+      "K-최근접 이웃 (KNN)",
+      "부트스트래핑 (Bootstrapping)"
+    ],
+    "answer": "K-Fold 교차 검증 (Cross Validation)",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-9",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 9,
+    "type": "choice",
+    "question": "9.  이름에 '회귀'가 들어가지만, 실제로는 스팸 메일 분류 등 이진 분류(0 또는 1) 문제에 널리 사용되는 선형 머신러닝 알고리즘은?",
+    "options": [
+      "선형 회귀 (Linear Regression)",
+      "로지스틱 회귀 (Logistic Regression)",
+      "릿지 회귀 (Ridge Regression)",
+      "라쏘 회귀 (Lasso Regression)"
+    ],
+    "answer": "로지스틱 회귀 (Logistic Regression)",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-10",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 10,
+    "type": "choice",
+    "question": "10.  여러 개의 의사결정 나무(Decision Tree)를 숲처럼 결합하여, 다수결 방식으로 최종 결과를 예측하는 앙상블 알고리즘은?",
+    "options": [
+      "서포트 벡터 머신 (SVM)",
+      "K-최근접 이웃 (KNN)",
+      "랜덤 포레스트 (Random Forest)",
+      "나이브 베이즈 (Naive Bayes)"
+    ],
+    "answer": "랜덤 포레스트 (Random Forest)",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-11",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 11,
+    "type": "choice",
+    "question": "11.  분류 문제에서 정상과 불량처럼 데이터 불균형이 심할 때, 정밀도(Precision)와 재현율(Recall)의 조화평균을 구하여 모델의 성능을 종합적으로 평가하는 지표는?",
+    "options": [
+      "F1-Score",
+      "ROC-AUC",
+      "MSE (Mean Squared Error)",
+      "R2 Score"
+    ],
+    "answer": "F1-Score",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-12",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 12,
+    "type": "choice",
+    "question": "12.  리스트 a = [1, 2, 3]의 맨 끝에 숫자 4를 추가하여 [1, 2, 3, 4]로 만드는 가장 적절한 메서드는?",
+    "options": [
+      "a.insert(4)",
+      "a.add(4)",
+      "a.append(4)",
+      "a.extend(4)"
+    ],
+    "answer": "a.append(4)",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-13",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 13,
+    "type": "choice",
+    "question": "13.  다음 중 파이썬의 문자열을 특정 문자를 기준으로 나누어 리스트로 반환하는 메서드는?",
+    "options": [
+      "replace()",
+      "strip()",
+      "join()",
+      "split()"
+    ],
+    "answer": "split()",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-14",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 14,
+    "type": "choice",
+    "question": "14.  판다스(Pandas)에서 인덱스와 값으로 구성된 1차원 배열 형태의 자료구조를 무엇이라고 하는가?",
+    "options": [
+      "DataFrame",
+      "Matrix",
+      "Series",
+      "Array"
+    ],
+    "answer": "Series",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-15",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 15,
+    "type": "choice",
+    "question": "15.  특정 열의 데이터 타입(Data Type)을 다른 타입(예: 문자열 -> 정수)으로 변환할 때 사용하는 메서드는?",
+    "options": [
+      "convert_type()",
+      "to_type()",
+      "astype()",
+      "change_dtype()"
+    ],
+    "answer": "astype()",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-16",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 16,
+    "type": "choice",
+    "question": "16.  정답(Label)이 주어지지 않은 상태에서 데이터의 특징만을 바탕으로 숨겨진 패턴이나 군집을 찾아내는 학습 기법은?",
+    "options": [
+      "지도 학습 (Supervised Learning)",
+      "강화 학습 (Reinforcement Learning)",
+      "비지도 학습 (Unsupervised Learning)",
+      "전이 학습 (Transfer Learning)"
+    ],
+    "answer": "비지도 학습 (Unsupervised Learning)",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-17",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 17,
+    "type": "choice",
+    "question": "17.  회귀 모델의 성능 평가 지표로, 실제값과 예측값의 차이(오차)를 제곱한 후 평균을 낸 것은?",
+    "options": [
+      "MAE (Mean Absolute Error)",
+      "MSE (Mean Squared Error)",
+      "RMSE (Root Mean Squared Error)",
+      "R2 Score"
+    ],
+    "answer": "MSE (Mean Squared Error)",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-18",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 18,
+    "type": "choice",
+    "question": "18.  머신러닝 모델이 훈련 과정에서 스스로 찾아내는 값이 아니라, 학습률(Learning Rate)이나 K-Means의 K값처럼 사용자가 학습 전에 직접 설정해주어야 하는 변수를 무엇이라고 하는가?",
+    "options": [
+      "모델 파라미터 (Model Parameter)",
+      "피처 (Feature)",
+      "타겟 (Target)",
+      "하이퍼파라미터 (Hyperparameter)"
+    ],
+    "answer": "하이퍼파라미터 (Hyperparameter)",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-19",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 19,
+    "type": "choice",
+    "question": "19.  판다스에서 groupby()로 데이터를 그룹화한 후, 'salary' 열에는 평균(mean)을, 'age' 열에는 최댓값(max)을 구하는 등 여러 개의 서로 다른 통계 연산을 한 번에 적용하고 싶을 때 사용하는 메서드는 무엇인가?",
+    "options": [
+      "apply()",
+      "map()",
+      "agg() (또는 aggregate())",
+      "transform()"
+    ],
+    "answer": "agg() (또는 aggregate())",
+    "aliases": []
+  },
+  {
+    "id": "6월 30일-20",
+    "source": "6월 30일 문제",
+    "sourceDate": "6월 30일",
+    "number": 20,
+    "type": "choice",
+    "question": "20.  머신러닝 분류(Classification) 알고리즘 중에서, 데이터를 나누는 결정 경계(Decision Boundary)와 데이터 포인트 사이의 거리인 '여백(Margin)'을 최대로 넓히는 선을 찾아내어 분류하는 모델은 무엇인가?",
+    "options": [
+      "K-최근접 이웃 (KNN)",
+      "서포트 벡터 머신 (SVM)",
+      "의사결정 나무 (Decision Tree)",
+      "로지스틱 회귀 (Logistic Regression)"
+    ],
+    "answer": "서포트 벡터 머신 (SVM)",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-1",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 1,
+    "type": "choice",
+    "question": "1.  머신러닝에서 과적합(Overfitting)을 방지하기 위한 방법이 아닌 것은?",
+    "options": [
+      "학습 데이터 양 늘리기",
+      "규제(Regularization, L1/L2) 적용",
+      "모델 복잡도 높이기",
+      "드롭아웃(Dropout) 사용"
+    ],
+    "answer": "모델 복잡도 높이기",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-2",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 2,
+    "type": "choice",
+    "question": "2.  머신러닝의 지도학습(Supervised Learning)에 해당하지 않는 것은?",
+    "options": [
+      "선형 회귀 (Linear Regression)",
+      "분류 (Classification)",
+      "군집화 (Clustering)",
+      "로지스틱 회귀 (Logistic Regression)"
+    ],
+    "answer": "군집화 (Clustering)",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-3",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 3,
+    "type": "choice",
+    "question": "3.  데이터 전처리 중 원-핫 인코딩(One-Hot Encoding)을 하는 주된 이유는?",
+    "options": [
+      "숫자로 된 데이터를 문자로 변환하기 위해",
+      "범주형 데이터를 모델이 처리 가능한 수치형으로 변환하기 위해",
+      "데이터의 크기를 줄이기 위해",
+      "결측치를 채우기 위해"
+    ],
+    "answer": "범주형 데이터를 모델이 처리 가능한 수치형으로 변환하기 위해",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-4",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 4,
+    "type": "choice",
+    "question": "4.  파이썬에서 여러 줄의 코드를 반복할 때 사용하는 제어문은?",
+    "options": [
+      "if",
+      "for",
+      "def",
+      "class"
+    ],
+    "answer": "for",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-5",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 5,
+    "type": "choice",
+    "question": "5.  파이썬에서 참(True)과 거짓(False)을 나타내는 자료형은?",
+    "options": [
+      "int",
+      "str",
+      "bool",
+      "list"
+    ],
+    "answer": "bool",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-6",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 6,
+    "type": "choice",
+    "question": "6.  머신러닝에서 '데이터 전처리'를 하는 주된 이유는?",
+    "options": [
+      "데이터를 멋있게 보이려고",
+      "모델이 데이터를 더 잘 이해하게 하려고",
+      "파이썬 파일 크기를 줄이려고",
+      "컴퓨터를 빨리 종료하려고"
+    ],
+    "answer": "모델이 데이터를 더 잘 이해하게 하려고",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-7",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 7,
+    "type": "choice",
+    "question": "7.  파이썬에서 함수를 정의할 때 사용하는 키워드는?",
+    "options": [
+      "func",
+      "def",
+      "define",
+      "class"
+    ],
+    "answer": "def",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-8",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 8,
+    "type": "choice",
+    "question": "8.  데이터셋을 학습용(Train)과 테스트용(Test)으로 나누는 이유는?",
+    "options": [
+      "데이터를 복사하기 위해서",
+      "모델의 성능을 공정하게 평가하기 위해서",
+      "코드를 더 길게 만들기 위해서",
+      "메모리 용량을 확인하기 위해서"
+    ],
+    "answer": "모델의 성능을 공정하게 평가하기 위해서",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-9",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 9,
+    "type": "choice",
+    "question": "9.  파이썬의 print() 함수의 역할은?",
+    "options": [
+      "값을 입력받는다.",
+      "값을 화면에 출력한다.",
+      "값을 더한다.",
+      "파일을 저장한다."
+    ],
+    "answer": "값을 화면에 출력한다.",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-10",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 10,
+    "type": "choice",
+    "question": "10.  머신러닝에서 분류(Classification) 문제의 예시로 적절한 것은?",
+    "options": [
+      "집값 예측하기",
+      "이메일이 스팸인지 아닌지 판별하기",
+      "기온 예측하기",
+      "달리기 속도 예측하기"
+    ],
+    "answer": "이메일이 스팸인지 아닌지 판별하기",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-11",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 11,
+    "type": "choice",
+    "question": "11.  머신러닝에서 알고리즘이 학습할 때 사용하는 '입력값'을 보통 무엇이라 부르는가?",
+    "options": [
+      "Feature (특성)",
+      "Label (정답)",
+      "Function (함수)",
+      "Variable (변수)"
+    ],
+    "answer": "Feature (특성)",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-12",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 12,
+    "type": "choice",
+    "question": "12.  파이썬에서 조건문(if)과 함께 사용되어 '그렇지 않으면'을 의미하는 키워드는?",
+    "options": [
+      "else",
+      "then",
+      "overwise",
+      "switch"
+    ],
+    "answer": "else",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-13",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 13,
+    "type": "choice",
+    "question": "13.  머신러닝에서 데이터를 0과 1 사이의 값으로 변환하는 과정을 무엇이라 하는가?",
+    "options": [
+      "정규화 (Normalization)",
+      "암호화",
+      "압축",
+      "정렬"
+    ],
+    "answer": "정규화 (Normalization)",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-14",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 14,
+    "type": "choice",
+    "question": "14. 빈 칸에 들어갈 것으로 적절한 것은?\n\n  numbers = [1, 2, 3] \nfor i ________ numbers : \n       print(i)",
+    "options": [
+      "in",
+      "at",
+      "from",
+      "with"
+    ],
+    "answer": "in",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-15",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 15,
+    "type": "choice",
+    "question": "15.  판다스(Pandas) 데이터프레임의 앞부분 5개 데이터를 확인하는 코드입니다. 빈칸은? \n\nimport pandas as pd \ndf = pd.read_csv('data.csv') \nprint(df.________())",
+    "options": [
+      "tail",
+      "head",
+      "show",
+      "view"
+    ],
+    "answer": "head",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-16",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 16,
+    "type": "choice",
+    "question": "16.  데이터의 특성(Feature) 개수를 줄여 데이터의 복잡도를 낮추는 기법은?",
+    "options": [
+      "차원 축소",
+      "데이터 증강",
+      "교차 검증",
+      "스케일링"
+    ],
+    "answer": "차원 축소",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-17",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 17,
+    "type": "choice",
+    "question": "17.  학습 데이터와 테스트 데이터를 8:2로 나눌 때 주로 사용하는 Scikit-learn 함수는?",
+    "options": [
+      "train_test_split",
+      "cross_val_score",
+      "fit_transform",
+      "model_selection"
+    ],
+    "answer": "train_test_split",
+    "aliases": []
+  },
+  {
+    "id": "7월 1일-18",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 18,
+    "type": "text",
+    "question": "18.  수많은 정보(연락처, 사진, 쇼핑 목록 등)를 필요할 때 언제든지 꺼내 쓰고, 안전하게 보관하기 위해 컴퓨터에 체계적으로 모아둔 '데이터의 집합소'를 무엇이라고 할까요?",
+    "options": [],
+    "answer": "데이터베이스",
+    "aliases": [
+      "데이터베이스",
+      "database",
+      "db",
+      "DB"
+    ]
+  },
+  {
+    "id": "7월 1일-19",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 19,
+    "type": "text",
+    "question": "19.  여러 개의 결정 트리(Decision Tree)를 결합하여 모델의 예측 성능을 높이는 대표적인 앙상블 기법은 무엇인가요?",
+    "options": [],
+    "answer": "랜덤 포레스트",
+    "aliases": [
+      "랜덤포레스트",
+      "랜덤 포레스트",
+      "random forest",
+      "Random Forest",
+      "랜덤 포레스트(random forest)"
+    ]
+  },
+  {
+    "id": "7월 1일-20",
+    "source": "7월 1일 문제",
+    "sourceDate": "7월 1일",
+    "number": 20,
+    "type": "text",
+    "question": "20.  아래 코드에서 greet 함수를 올바르게 호출하여 \"Hello, Park!\"이라는 결과가 출력되도록 답안을 작성하세요.\n\ndef greet(name) : \n      print(\"Hello, \" + name + \"!\")",
+    "options": [],
+    "answer": "greet('Park')",
+    "aliases": [
+      "greet('Park')",
+      "greet(\"Park\")",
+      "greet(\"Park\")",
+      "greet('park')",
+      "greet(\"park\")"
+    ]
+  }
+];
+
+    const stateKey = 'randomQuizState_forms_2026_07_06_v2';
+    let state = loadState();
+    let current = null;
+    let selectedOption = null;
+    let renderedOptions = [];
+
+    const el = (id) => document.getElementById(id);
+    const letters = ['A','B','C','D','E','F'];
+
+    function loadState() {
+      try {
+        return JSON.parse(localStorage.getItem(stateKey)) || { attempts: {} };
+      } catch (e) {
+        return { attempts: {} };
+      }
+    }
+    function saveState() { localStorage.setItem(stateKey, JSON.stringify(state)); }
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+    function normalizeText(s) {
+      return String(s || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/[()\[\]{}.,!?:;"'`“”‘’]/g, '')
+        .replace(/-/g, '');
+    }
+    function plain(s) { return String(s || '').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim(); }
+
+    function filteredQuestions() {
+      const source = el('sourceFilter').value;
+      const mode = el('modeFilter').value;
+      return QUESTIONS.filter(q => {
+        if (source !== 'all' && q.sourceDate !== source) return false;
+        const rec = state.attempts[q.id];
+        if (mode === 'unsolved' && rec) return false;
+        if (mode === 'wrong' && (!rec || rec.correct !== false)) return false;
+        return true;
+      });
+    }
+
+    function pickQuestion() {
+      let pool = filteredQuestions();
+      if (pool.length === 0) {
+        const mode = el('modeFilter').value;
+        const source = el('sourceFilter').value;
+        el('result').className = 'result neutral';
+        el('result').innerHTML = `현재 조건에 맞는 문제가 없습니다.<br>출제 범위나 모드를 바꿔주세요. <span class="small">현재 범위: ${source}, 모드: ${mode}</span>`;
+        return;
+      }
+      current = pool[Math.floor(Math.random() * pool.length)];
+      selectedOption = null;
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      el('result').className = 'result';
+      el('result').innerHTML = '';
+      el('meta').innerHTML = `<span class="tag">${current.sourceDate}</span><span class="tag">${current.type === 'choice' ? '객관식' : '주관식'}</span>`;
+      el('qno').textContent = `${current.source} · 원문 ${current.number}번 · ID ${current.id}`;
+      el('question').textContent = current.question;
+      el('options').innerHTML = '';
+      el('answerInput').value = '';
+      el('textAnswer').style.display = current.type === 'text' ? 'block' : 'none';
+
+      if (current.type === 'choice') {
+        renderedOptions = el('shuffleOptions').checked ? shuffle(current.options) : [...current.options];
+        renderedOptions.forEach((opt, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'option';
+          btn.innerHTML = `<span class="badge">${letters[idx]}</span><span>${escapeHtml(opt)}</span>`;
+          btn.addEventListener('click', () => {
+            selectedOption = opt;
+            document.querySelectorAll('.option').forEach(x => x.classList.remove('selected'));
+            btn.classList.add('selected');
+          });
+          el('options').appendChild(btn);
+        });
+      } else {
+        renderedOptions = [];
+      }
+      updateStats();
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function teacherExplanation(q, correctAnswer) {
+      const text = `${q.question} ${correctAnswer}`.toLowerCase();
+      const backgrounds = [
+        [/pandas|dataframe|series|groupby|fillna|isnull|loc|iloc|astype|head|info|concat|apply/, "Pandas는 표 형태 데이터를 다루는 도구입니다. 메서드 이름만 외우지 말고 ‘입력 데이터가 무엇이고, 실행 뒤 행·열·자료형이 어떻게 바뀌는가’를 함께 확인해야 합니다."],
+        [/분류|회귀|머신러닝|모델|과적합|과소적합|교차 검증|f1|mse|accuracy|랜덤 포레스트|svm|로지스틱/, "머신러닝 문제는 먼저 예측 대상이 범주인지 연속값인지 구분한 뒤, 데이터 분할·학습·예측·평가 순서로 생각하세요. 평가 지표는 문제 목적과 오분류 비용에 맞춰 선택해야 합니다."],
+        [/군집|kmeans|실루엣|비지도|차원 축소|pca/, "비지도학습은 정답 레이블 없이 데이터 구조를 찾습니다. 군집화는 비슷한 샘플을 묶고, 차원 축소는 중요한 정보를 최대한 유지하면서 변수 수를 줄입니다."],
+        [/python|파이썬|list|tuple|append|split|def|for|else|print|bool|try|except| in /, "Python 문법은 코드를 실제 실행 순서대로 추적하는 것이 가장 좋습니다. 자료형의 변경 가능성, 함수의 입력과 반환값, 조건과 반복문의 실행 범위를 차례로 확인하세요."],
+        [/결측|인코딩|정규화|스케일|전처리|feature|특성/, "전처리는 모델이 데이터를 올바르게 해석하도록 형태와 범위를 정돈하는 과정입니다. 전처리 규칙은 학습 데이터로만 정하고 테스트 데이터에는 같은 규칙을 적용해야 데이터 누수를 막을 수 있습니다."],
+        [/데이터베이스|database|sql/, "데이터베이스는 데이터를 구조적으로 저장하고 여러 사용자가 안전하게 조회·수정하도록 관리합니다. 단순 파일 저장과 달리 무결성, 동시성, 질의 기능을 함께 제공합니다."]
+      ];
+      const background = backgrounds.find(([pattern]) => pattern.test(text))?.[1]
+        || "이 문제는 용어의 정의만 암기하기보다 ‘어떤 입력에, 어떤 목적으로, 어떤 결과를 만드는가’를 연결해 이해하는 것이 중요합니다.";
+      const options = q.options || [];
+      const wrongs = options.filter(opt => normalizeText(opt) !== normalizeText(correctAnswer));
+      const wrongHtml = wrongs.length
+        ? `<ul>${wrongs.map(opt => `<li><b>${escapeHtml(opt)}</b> — 문제에서 요구한 기능·정의와 일치하지 않습니다. <b>${escapeHtml(correctAnswer)}</b>과 무엇이 다른지 입력·출력 또는 사용 목적을 비교하세요.</li>`).join("")}</ul>`
+        : "<p>주관식은 비슷한 단어보다 정확한 핵심 용어와 코드 문법을 쓰는 것이 중요합니다.</p>";
+      return `
+        <hr>
+        <div><b>① 왜 이 답이 맞을까요?</b><p><b>${escapeHtml(correctAnswer)}</b>은(는) 문제에서 묻는 조건과 기능을 직접 만족합니다. 질문의 핵심어와 정답의 역할을 한 문장으로 연결해 기억하세요.</p></div>
+        <details open><summary><b>② 다른 답은 왜 아닐까요?</b></summary>${wrongHtml}</details>
+        <details open><summary><b>③ 함께 알아둘 배경지식</b></summary><p>${background}</p></details>
+        <div><b>④ 기억 포인트</b><p>“이 문제는 <u>${escapeHtml(correctAnswer)}</u>을 묻는다”라고 소리 내어 설명한 뒤, 보기 없이 다시 답해 보세요.</p></div>
+      `;
+    }
+
+    function checkAnswer(showOnly=false) {
+      if (!current) { pickQuestion(); return; }
+      const correctAnswer = current.answer || '정답 정보 없음';
+      let userAnswer = '';
+      let correct = false;
+
+      if (current.type === 'choice') {
+        if (!showOnly && !selectedOption) {
+          el('result').className = 'result neutral';
+          el('result').textContent = '먼저 보기를 선택해주세요.';
+          return;
+        }
+        userAnswer = selectedOption || '';
+        correct = normalizeText(userAnswer) === normalizeText(correctAnswer);
+        document.querySelectorAll('.option').forEach((btn, idx) => {
+          const opt = renderedOptions[idx];
+          btn.classList.remove('correct', 'wrong');
+          if (normalizeText(opt) === normalizeText(correctAnswer)) btn.classList.add('correct');
+          if (!showOnly && opt === selectedOption && !correct) btn.classList.add('wrong');
+        });
+      } else {
+        userAnswer = el('answerInput').value;
+        const accepted = [correctAnswer, ...(current.aliases || [])].map(normalizeText);
+        correct = accepted.includes(normalizeText(userAnswer));
+        if (!showOnly && !userAnswer.trim()) {
+          el('result').className = 'result neutral';
+          el('result').textContent = '정답을 입력해주세요.';
+          return;
+        }
+      }
+
+      if (showOnly) {
+        el('result').className = 'result neutral';
+        el('result').innerHTML = `<b>정답:</b> ${escapeHtml(correctAnswer)}${teacherExplanation(current, correctAnswer)}`;
+        return;
+      }
+
+      state.attempts[current.id] = {
+        correct,
+        userAnswer,
+        answer: correctAnswer,
+        question: current.question,
+        sourceDate: current.sourceDate,
+        number: current.number,
+        updatedAt: new Date().toISOString()
+      };
+      saveState();
+      updateStats();
+
+      el('result').className = correct ? 'result good' : 'result bad';
+      el('result').innerHTML = (correct
+        ? `정답입니다!<br><b>정답:</b> ${escapeHtml(correctAnswer)}`
+        : `틀렸습니다.<br><b>내 답:</b> ${escapeHtml(userAnswer)}<br><b>정답:</b> ${escapeHtml(correctAnswer)}`)
+        + teacherExplanation(current, correctAnswer);
+
+      if (el('autoNext').checked && correct) {
+        setTimeout(pickQuestion, 900);
+      }
+    }
+
+    function updateStats() {
+      const attempts = Object.values(state.attempts);
+      const solved = attempts.length;
+      const corrects = attempts.filter(a => a.correct).length;
+      const wrongs = attempts.filter(a => a.correct === false).length;
+      el('totalCount').textContent = QUESTIONS.length;
+      el('solvedCount').textContent = solved;
+      el('wrongCount').textContent = wrongs;
+      el('scoreRate').textContent = solved ? Math.round(corrects / solved * 100) + '%' : '0%';
+      renderWrongList();
+    }
+
+    function renderWrongList() {
+      const wrongs = Object.entries(state.attempts)
+        .filter(([id, rec]) => rec.correct === false)
+        .sort((a,b) => new Date(b[1].updatedAt) - new Date(a[1].updatedAt));
+      const list = el('wrongList');
+      list.innerHTML = '';
+      if (wrongs.length === 0) {
+        list.innerHTML = '<li class="small">아직 오답이 없습니다.</li>';
+        return;
+      }
+      wrongs.slice(0, 30).forEach(([id, rec]) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<b>${rec.sourceDate} · ${rec.number}번</b><br><span class="small">${escapeHtml(plain(rec.question).slice(0, 95))}${plain(rec.question).length > 95 ? '...' : ''}</span><br><button class="secondary" data-id="${id}">다시 풀기</button>`;
+        li.querySelector('button').addEventListener('click', () => {
+          current = QUESTIONS.find(q => q.id === id);
+          selectedOption = null;
+          renderQuestion();
+        });
+        list.appendChild(li);
+      });
+    }
+
+    el('nextBtn').addEventListener('click', pickQuestion);
+    el('againBtn').addEventListener('click', pickQuestion);
+    el('checkBtn').addEventListener('click', () => checkAnswer(false));
+    el('showAnswerBtn').addEventListener('click', () => checkAnswer(true));
+    el('sourceFilter').addEventListener('change', pickQuestion);
+    el('modeFilter').addEventListener('change', pickQuestion);
+    el('resetBtn').addEventListener('click', () => {
+      if (confirm('풀이 기록과 오답 노트를 모두 초기화할까요?')) {
+        state = { attempts: {} };
+        saveState();
+        updateStats();
+        el('result').className = 'result neutral';
+        el('result').textContent = '기록을 초기화했습니다.';
+      }
+    });
+    el('answerInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') checkAnswer(false);
+    });
+
+    updateStats();
+    pickQuestion();
+  </script>
+</body>
+</html>
