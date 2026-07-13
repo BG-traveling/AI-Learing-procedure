@@ -1206,6 +1206,7 @@
             selectedOption = opt;
             document.querySelectorAll('.option').forEach(x => x.classList.remove('selected'));
             btn.classList.add('selected');
+            checkAnswer(false);
           });
           el('options').appendChild(btn);
         });
