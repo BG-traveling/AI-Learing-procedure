@@ -800,7 +800,53 @@ let lastWrongIdx = [];     // 전체 기준 오답 인덱스(원본 QUESTIONS �
 function subjectIndices(s){
   const list = [];
   ALL_QUESTIONS.forEach((q,i)=>{ if(q.s===s) list.push(i); });
-  return list;
+  return uniqueQuestionIndices(list);
+}
+
+function normalizeQuestionText(text){
+  return String(text || "")
+    .replace(/^\s*\d+[.)]\s*/, "")
+    .replace(/[\u200b-\u200d\ufeff]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function uniqueQuestionIndices(indices){
+  const seen = new Set();
+  return indices.filter(i=>{
+    const key = normalizeQuestionText(ALL_QUESTIONS[i].q);
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function spreadByTopic(indices){
+  const buckets = new Map();
+  shuffled(indices).forEach(i=>{
+    const topic = ALL_QUESTIONS[i].topic || "기타";
+    if(!buckets.has(topic)) buckets.set(topic, []);
+    buckets.get(topic).push(i);
+  });
+  const ordered = Array.from(buckets.values()).sort((a,b)=>b.length-a.length);
+  const result = [];
+  let added = true;
+  while(added){
+    added = false;
+    ordered.sort((a,b)=>b.length-a.length);
+    for(const bucket of ordered){
+      if(bucket.length){
+        result.push(bucket.shift());
+        added = true;
+      }
+    }
+  }
+  if(result.length > 1){
+    const offset = Math.floor(Math.random() * result.length);
+    return result.slice(offset).concat(result.slice(0, offset));
+  }
+  return result;
 }
 
 function startSubjectPractice(s){
@@ -810,8 +856,9 @@ function startSubjectPractice(s){
 function startExam(subset, mode){
   isSubsetMode = Array.isArray(subset);
   sessionMode = mode || (isSubsetMode ? 'wrong' : 'exam');
+  const selected = isSubsetMode && sessionMode === 'subject' ? spreadByTopic(uniqueQuestionIndices(subset)) : subset;
   activeSet = isSubsetMode
-    ? subset.map(i => ({...ALL_QUESTIONS[i], _orig:i}))
+    ? selected.map(i => ({...ALL_QUESTIONS[i], _orig:i}))
     : shuffled(QUESTIONS.map((q,i)=>({...q,_orig:i})));
   answers = new Array(activeSet.length).fill(null);
   flags = new Array(activeSet.length).fill(false);
@@ -1047,7 +1094,7 @@ function startInstantModeFromIntro(){
 }
 
 function startInstantMode(indices){
-  instantSet = shuffled(indices).map(i => ({...ALL_QUESTIONS[i], _orig:i}));
+  instantSet = spreadByTopic(uniqueQuestionIndices(indices)).map(i => ({...ALL_QUESTIONS[i], _orig:i}));
   instantIdx = 0;
   instantCorrectCount = 0;
   instantWrongOrig = [];
