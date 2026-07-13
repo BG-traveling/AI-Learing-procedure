@@ -4,8 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI 교육과정 반복학습</title>
+  <script>
+    try {
+      const savedTheme = localStorage.getItem("ai_course_theme_v1");
+      const preferredTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.dataset.theme = savedTheme || preferredTheme;
+    } catch (e) {
+      document.documentElement.dataset.theme = "light";
+    }
+  </script>
   <style>
     :root {
+      color-scheme: light;
       --bg: #f5f7fb;
       --card: #ffffff;
       --text: #172033;
@@ -20,6 +30,21 @@
       --shadow: 0 18px 50px rgba(15, 23, 42, 0.10);
       --radius: 22px;
     }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --card: #121a2f;
+      --text: #e5e7eb;
+      --muted: #a8b3c7;
+      --line: #26324a;
+      --primary: #60a5fa;
+      --primary-dark: #3b82f6;
+      --soft: #10264a;
+      --soft2: #111827;
+      --danger: #fb7185;
+      --ok: #4ade80;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+    }
 
     * { box-sizing: border-box; }
     body {
@@ -31,6 +56,13 @@
         radial-gradient(circle at top right, rgba(99, 102, 241, 0.13), transparent 30%),
         var(--bg);
       color: var(--text);
+      transition: background-color .18s ease, color .18s ease;
+    }
+    :root[data-theme="dark"] body {
+      background:
+        radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 32%),
+        radial-gradient(circle at top right, rgba(168, 85, 247, 0.16), transparent 30%),
+        var(--bg);
     }
 
     button, input, textarea { font: inherit; }
@@ -85,6 +117,14 @@
     .btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
     .btn.primary:hover { background: var(--primary-dark); }
     .btn.danger { color: #991b1b; background: #fff1f2; border-color: #fecdd3; }
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 104px;
+      justify-content: center;
+    }
+    .theme-toggle .theme-icon { font-size: 15px; line-height: 1; }
 
     main { flex: 1; }
     .container { max-width: 1180px; margin: 0 auto; padding: 30px 20px 52px; }
@@ -307,6 +347,95 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    :root[data-theme="dark"] header {
+      background: rgba(11, 16, 32, 0.88);
+      border-bottom-color: rgba(38, 50, 74, 0.88);
+    }
+    :root[data-theme="dark"] .btn {
+      background: #151f36;
+      color: var(--text);
+      border-color: var(--line);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    }
+    :root[data-theme="dark"] .btn:hover { border-color: #3b82f6; }
+    :root[data-theme="dark"] .btn.primary {
+      background: var(--primary-dark);
+      color: #eff6ff;
+      border-color: var(--primary-dark);
+    }
+    :root[data-theme="dark"] .btn.danger {
+      color: #fecdd3;
+      background: #3f1220;
+      border-color: #7f1d1d;
+    }
+    :root[data-theme="dark"] .hero,
+    :root[data-theme="dark"] .module-group,
+    :root[data-theme="dark"] .card,
+    :root[data-theme="dark"] .study-panel {
+      background: rgba(18, 26, 47, 0.88);
+      border-color: rgba(38, 50, 74, 0.95);
+    }
+    :root[data-theme="dark"] .module-group > summary {
+      background: linear-gradient(135deg, rgba(15, 35, 68, .92), rgba(39, 24, 72, .74));
+    }
+    :root[data-theme="dark"] .module-group > summary::after {
+      background: #0f172a;
+      color: var(--primary);
+      border-color: #334155;
+    }
+    :root[data-theme="dark"] .group-content,
+    :root[data-theme="dark"] .concept,
+    :root[data-theme="dark"] .progress-track {
+      background: rgba(15, 23, 42, .72);
+    }
+    :root[data-theme="dark"] .roadmap-item,
+    :root[data-theme="dark"] .resource,
+    :root[data-theme="dark"] .field {
+      background: #0f172a;
+      border-color: var(--line);
+      color: var(--text);
+    }
+    :root[data-theme="dark"] .field::placeholder { color: #748199; }
+    :root[data-theme="dark"] .chip,
+    :root[data-theme="dark"] .step-no {
+      background: #10264a;
+      color: #bfdbfe;
+      border-color: #1d4ed8;
+    }
+    :root[data-theme="dark"] .badge,
+    :root[data-theme="dark"] .group-count {
+      background: #1e1b4b;
+      color: #c4b5fd;
+    }
+    :root[data-theme="dark"] .concept code {
+      color: #c4b5fd;
+    }
+    :root[data-theme="dark"] .practice-box {
+      background: #241334;
+      border-left-color: #a78bfa;
+    }
+    :root[data-theme="dark"] .practice-box code {
+      background: #3b1f5f;
+      color: #ddd6fe;
+    }
+    :root[data-theme="dark"] .add-card {
+      background: linear-gradient(180deg, rgba(18, 26, 47, 0.92), rgba(15, 23, 42, 0.9));
+    }
+    :root[data-theme="dark"] .guide {
+      background: #020617;
+      color: #dbeafe;
+      border: 1px solid var(--line);
+    }
+    :root[data-theme="dark"] .viewer-bar {
+      background: rgba(11, 16, 32, 0.92);
+      border-bottom-color: var(--line);
+    }
+    :root[data-theme="dark"] iframe { background: #0b1020; }
+    :root[data-theme="dark"] .toast {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
     @media (max-width: 840px) {
       .topbar { align-items: flex-start; flex-direction: column; }
       .top-actions { justify-content: flex-start; }
@@ -332,6 +461,10 @@
           </div>
         </div>
         <div class="top-actions">
+          <button id="themeToggle" class="btn theme-toggle" type="button" aria-label="다크 모드로 전환">
+            <span class="theme-icon" aria-hidden="true">☾</span>
+            <span class="theme-label">다크</span>
+          </button>
           <button class="btn" onclick="showDashboard()">홈</button>
           <button class="btn" onclick="scrollToAdd()">학습 HTML 추가</button>
           <button class="btn danger" onclick="resetCustomModules()">추가 항목 초기화</button>
@@ -634,6 +767,7 @@
     ];
     const CUSTOM_KEY = "ai_course_learning_custom_modules_v1";
     const ROADMAP_KEY = "ai_course_roadmap_progress_v1";
+    const THEME_KEY = "ai_course_theme_v1";
     const BUILTIN_SOURCE_OVERRIDES = {
       "ai-basic-quiz": "materials/exams/중간평가시험(문제 랜덤 출제).html",
       "opencv-quiz": "materials/opencv/OpenCV_학습.html"
@@ -646,6 +780,116 @@
     ];
     let modules = [];
     let currentModule = null;
+
+    function getCurrentTheme() {
+      return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    }
+
+    function setTheme(theme) {
+      const nextTheme = theme === "dark" ? "dark" : "light";
+      document.documentElement.dataset.theme = nextTheme;
+      localStorage.setItem(THEME_KEY, nextTheme);
+      updateThemeToggle();
+      applyThemeToFrame();
+    }
+
+    function updateThemeToggle() {
+      const toggle = document.getElementById("themeToggle");
+      if (!toggle) return;
+      const isDark = getCurrentTheme() === "dark";
+      toggle.setAttribute("aria-label", isDark ? "라이트 모드로 전환" : "다크 모드로 전환");
+      toggle.querySelector(".theme-icon").textContent = isDark ? "☀" : "☾";
+      toggle.querySelector(".theme-label").textContent = isDark ? "라이트" : "다크";
+    }
+
+    function initTheme() {
+      updateThemeToggle();
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        setTheme(getCurrentTheme() === "dark" ? "light" : "dark");
+      });
+      document.getElementById("moduleFrame").addEventListener("load", applyThemeToFrame);
+    }
+
+    function applyThemeToFrame() {
+      const frame = document.getElementById("moduleFrame");
+      if (!frame || !frame.contentDocument) return;
+      try {
+        const doc = frame.contentDocument;
+        doc.documentElement.dataset.theme = getCurrentTheme();
+        let style = doc.getElementById("parent-theme-style");
+        if (!style) {
+          style = doc.createElement("style");
+          style.id = "parent-theme-style";
+          doc.head.appendChild(style);
+        }
+        style.textContent = `
+          :root[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #0b1020;
+            --card: #121a2f;
+            --text: #e5e7eb;
+            --muted: #a8b3c7;
+            --line: #26324a;
+            --primary: #60a5fa;
+            --primary-dark: #3b82f6;
+            --soft: #10264a;
+            --soft2: #111827;
+            --good: #4ade80;
+            --bad: #fb7185;
+            --shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+          }
+          :root[data-theme="dark"] body {
+            background: #0b1020 !important;
+            color: var(--text) !important;
+          }
+          :root[data-theme="dark"] header,
+          :root[data-theme="dark"] aside,
+          :root[data-theme="dark"] main,
+          :root[data-theme="dark"] section,
+          :root[data-theme="dark"] article,
+          :root[data-theme="dark"] .card,
+          :root[data-theme="dark"] .panel,
+          :root[data-theme="dark"] .quiz,
+          :root[data-theme="dark"] .stat,
+          :root[data-theme="dark"] .option,
+          :root[data-theme="dark"] .list li,
+          :root[data-theme="dark"] .content,
+          :root[data-theme="dark"] .container {
+            background-color: #121a2f !important;
+            border-color: var(--line) !important;
+            color: var(--text) !important;
+          }
+          :root[data-theme="dark"] input,
+          :root[data-theme="dark"] select,
+          :root[data-theme="dark"] textarea {
+            background-color: #0f172a !important;
+            border-color: var(--line) !important;
+            color: var(--text) !important;
+          }
+          :root[data-theme="dark"] button {
+            border-color: var(--line) !important;
+          }
+          :root[data-theme="dark"] p,
+          :root[data-theme="dark"] small,
+          :root[data-theme="dark"] span,
+          :root[data-theme="dark"] label,
+          :root[data-theme="dark"] .desc,
+          :root[data-theme="dark"] .small,
+          :root[data-theme="dark"] .muted,
+          :root[data-theme="dark"] .footer-note,
+          :root[data-theme="dark"] .qno {
+            color: inherit;
+          }
+          :root[data-theme="dark"] code,
+          :root[data-theme="dark"] pre {
+            background-color: #020617 !important;
+            color: #dbeafe !important;
+          }
+        `;
+      } catch (e) {
+        // Cross-origin frames cannot be themed from the parent page.
+      }
+    }
 
     function decodeBase64Utf8(base64) {
       const binary = atob(base64);
@@ -900,6 +1144,7 @@
       toast("추가 항목을 초기화했습니다.");
     }
 
+    initTheme();
     initRoadmap();
     refreshModules();
   </script>
