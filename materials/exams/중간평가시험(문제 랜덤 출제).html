@@ -76,6 +76,18 @@
     .list button { padding: 7px 10px; margin-top: 7px; font-size: 12px; }
     .footer-note { margin-top: 18px; color: var(--muted); font-size: 13px; line-height:1.6; }
     code { background:#f3f4f6; border-radius:6px; padding:2px 5px; }
+    :root[data-theme="dark"] .option .badge {
+      background: #dbeafe;
+      color: #0f172a;
+      border: 1px solid #93c5fd;
+      box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.16);
+    }
+    :root[data-theme="dark"] .option.selected .badge,
+    :root[data-theme="dark"] .option.correct .badge,
+    :root[data-theme="dark"] .option.wrong .badge {
+      background: #ffffff;
+      color: #111827;
+    }
   </style>
 </head>
 <body>
